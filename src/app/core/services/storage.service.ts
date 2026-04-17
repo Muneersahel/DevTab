@@ -1,0 +1,350 @@
+import { Injectable } from '@angular/core';
+import { StoredWakaTimeCredential, WakaTimeCredentialInput } from '../models/credential.model';
+import {
+  ActivityDay,
+  DashboardStatus,
+  DashboardViewModel,
+  UsageItem,
+} from '../models/dashboard.model';
+import { BestDay } from '../models/wakatime-stats.model';
+
+const CREDENTIAL_KEY = 'devtab.wakatimeCredential';
+const DASHBOARD_CACHE_KEY = 'devtab.dashboardCache';
+const DASHBOARD_CACHE_VERSION = 1;
+
+interface CachedDashboardEnvelope {
+  version: number;
+  cachedAt: string;
+  data: SerializedDashboard;
+}
+
+interface SerializedDashboard extends Omit<DashboardViewModel, 'lastUpdated'> {
+  lastUpdated: string | null;
+}
+
+export interface CachedDashboard {
+  cachedAt: Date;
+  data: DashboardViewModel;
+}
+
+interface ChromeStorageArea {
+  get(keys: string | string[] | Record<string, unknown> | null): Promise<Record<string, unknown>>;
+  set(items: Record<string, unknown>): Promise<void>;
+  remove(keys: string | string[]): Promise<void>;
+}
+
+interface ChromeLike {
+  storage?: {
+    local?: ChromeStorageArea;
+  };
+}
+
+@Injectable({ providedIn: 'root' })
+export class StorageService {
+  async getCredential(): Promise<StoredWakaTimeCredential | null> {
+    const storage = this.chromeStorage();
+
+    if (storage) {
+      const result = await storage.get(CREDENTIAL_KEY);
+      return parseCredential(result[CREDENTIAL_KEY]);
+    }
+
+    return parseCredential(this.localStorage()?.getItem(CREDENTIAL_KEY));
+  }
+
+  async saveCredential(input: WakaTimeCredentialInput): Promise<StoredWakaTimeCredential> {
+    const credential: StoredWakaTimeCredential = {
+      type: input.type,
+      token: input.token.trim(),
+      savedAt: new Date().toISOString(),
+    };
+    const storage = this.chromeStorage();
+
+    if (storage) {
+      await storage.set({ [CREDENTIAL_KEY]: credential });
+      return credential;
+    }
+
+    this.localStorage()?.setItem(CREDENTIAL_KEY, JSON.stringify(credential));
+    return credential;
+  }
+
+  async clearCredential(): Promise<void> {
+    const storage = this.chromeStorage();
+
+    if (storage) {
+      await storage.remove(CREDENTIAL_KEY);
+      return;
+    }
+
+    this.localStorage()?.removeItem(CREDENTIAL_KEY);
+  }
+
+  async getCachedDashboard(): Promise<CachedDashboard | null> {
+    const storage = this.chromeStorage();
+
+    if (storage) {
+      const result = await storage.get(DASHBOARD_CACHE_KEY);
+      return parseCachedDashboard(result[DASHBOARD_CACHE_KEY]);
+    }
+
+    return parseCachedDashboard(this.localStorage()?.getItem(DASHBOARD_CACHE_KEY));
+  }
+
+  async saveCachedDashboard(data: DashboardViewModel): Promise<CachedDashboard> {
+    const cachedAt = new Date();
+    const envelope: CachedDashboardEnvelope = {
+      version: DASHBOARD_CACHE_VERSION,
+      cachedAt: cachedAt.toISOString(),
+      data: serializeDashboard(data),
+    };
+    const storage = this.chromeStorage();
+
+    if (storage) {
+      await storage.set({ [DASHBOARD_CACHE_KEY]: envelope });
+    } else {
+      this.localStorage()?.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(envelope));
+    }
+
+    return { cachedAt, data };
+  }
+
+  async clearCachedDashboard(): Promise<void> {
+    const storage = this.chromeStorage();
+
+    if (storage) {
+      await storage.remove(DASHBOARD_CACHE_KEY);
+      return;
+    }
+
+    this.localStorage()?.removeItem(DASHBOARD_CACHE_KEY);
+  }
+
+  private chromeStorage(): ChromeStorageArea | null {
+    const chromeLike = (globalThis as typeof globalThis & { chrome?: ChromeLike }).chrome;
+    return chromeLike?.storage?.local ?? null;
+  }
+
+  private localStorage(): Storage | null {
+    const storage = globalThis.localStorage;
+
+    if (
+      typeof storage?.getItem === 'function' &&
+      typeof storage.setItem === 'function' &&
+      typeof storage.removeItem === 'function'
+    ) {
+      return storage;
+    }
+
+    return null;
+  }
+}
+
+function parseCredential(value: unknown): StoredWakaTimeCredential | null {
+  const parsed = typeof value === 'string' ? safeParse(value) : value;
+
+  if (!isRecord(parsed)) {
+    return null;
+  }
+
+  if (
+    (parsed['type'] === 'apiKey' || parsed['type'] === 'bearerToken') &&
+    typeof parsed['token'] === 'string' &&
+    typeof parsed['savedAt'] === 'string'
+  ) {
+    return {
+      type: parsed['type'],
+      token: parsed['token'],
+      savedAt: parsed['savedAt'],
+    };
+  }
+
+  return null;
+}
+
+function safeParse(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function serializeDashboard(data: DashboardViewModel): SerializedDashboard {
+  return {
+    ...data,
+    lastUpdated: data.lastUpdated ? data.lastUpdated.toISOString() : null,
+  };
+}
+
+function parseCachedDashboard(value: unknown): CachedDashboard | null {
+  const parsed = typeof value === 'string' ? safeParse(value) : value;
+
+  if (!isRecord(parsed)) {
+    return null;
+  }
+
+  if (parsed['version'] !== DASHBOARD_CACHE_VERSION) {
+    return null;
+  }
+
+  if (typeof parsed['cachedAt'] !== 'string' || !isRecord(parsed['data'])) {
+    return null;
+  }
+
+  const cachedAt = new Date(parsed['cachedAt']);
+  if (Number.isNaN(cachedAt.getTime())) {
+    return null;
+  }
+
+  const data = deserializeDashboard(parsed['data']);
+  if (!data) {
+    return null;
+  }
+
+  return { cachedAt, data };
+}
+
+function deserializeDashboard(value: Record<string, unknown>): DashboardViewModel | null {
+  const languages = parseUsageItems(value['languages']);
+  const projects = parseUsageItems(value['projects']);
+  const categories = parseUsageItems(value['categories']);
+  const editors = parseUsageItems(value['editors']);
+  const operatingSystems = parseUsageItems(value['operatingSystems']);
+  const activity = parseActivity(value['activity']);
+  const status = parseStatus(value['status']);
+
+  if (
+    typeof value['totalTime'] !== 'string' ||
+    typeof value['dailyAverage'] !== 'string' ||
+    typeof value['rangeLabel'] !== 'string' ||
+    typeof value['activityUnavailable'] !== 'boolean' ||
+    !status
+  ) {
+    return null;
+  }
+
+  const lastUpdated =
+    typeof value['lastUpdated'] === 'string' ? new Date(value['lastUpdated']) : null;
+
+  return {
+    totalTime: value['totalTime'],
+    dailyAverage: value['dailyAverage'],
+    rangeLabel: value['rangeLabel'],
+    bestDay: parseBestDay(value['bestDay']),
+    topLanguage: parseUsageItem(value['topLanguage']),
+    topProject: parseUsageItem(value['topProject']),
+    languages,
+    projects,
+    categories,
+    editors,
+    operatingSystems,
+    activity,
+    activityUnavailable: value['activityUnavailable'],
+    lastUpdated: lastUpdated && !Number.isNaN(lastUpdated.getTime()) ? lastUpdated : null,
+    status,
+  };
+}
+
+function parseUsageItems(value: unknown): UsageItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((entry) => parseUsageItem(entry))
+    .filter((item): item is UsageItem => item !== null);
+}
+
+function parseUsageItem(value: unknown): UsageItem | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  if (
+    typeof value['name'] === 'string' &&
+    typeof value['percent'] === 'number' &&
+    typeof value['time'] === 'string' &&
+    typeof value['totalSeconds'] === 'number'
+  ) {
+    return {
+      name: value['name'],
+      percent: value['percent'],
+      time: value['time'],
+      totalSeconds: value['totalSeconds'],
+    };
+  }
+
+  return null;
+}
+
+function parseActivity(value: unknown): ActivityDay[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.reduce<ActivityDay[]>((acc, entry) => {
+    if (!isRecord(entry)) {
+      return acc;
+    }
+
+    if (
+      typeof entry['date'] === 'string' &&
+      typeof entry['label'] === 'string' &&
+      typeof entry['time'] === 'string' &&
+      typeof entry['totalSeconds'] === 'number' &&
+      typeof entry['percentOfMax'] === 'number'
+    ) {
+      acc.push({
+        date: entry['date'],
+        label: entry['label'],
+        time: entry['time'],
+        totalSeconds: entry['totalSeconds'],
+        percentOfMax: entry['percentOfMax'],
+      });
+    }
+
+    return acc;
+  }, []);
+}
+
+function parseStatus(value: unknown): DashboardStatus | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const tone = value['tone'];
+  if (tone !== 'ok' && tone !== 'updating' && tone !== 'warning') {
+    return null;
+  }
+
+  if (typeof value['label'] !== 'string' || typeof value['detail'] !== 'string') {
+    return null;
+  }
+
+  return { label: value['label'], detail: value['detail'], tone };
+}
+
+function parseBestDay(value: unknown): BestDay | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  if (
+    typeof value['date'] === 'string' &&
+    typeof value['text'] === 'string' &&
+    typeof value['total_seconds'] === 'number'
+  ) {
+    return {
+      date: value['date'],
+      text: value['text'],
+      total_seconds: value['total_seconds'],
+    };
+  }
+
+  return null;
+}

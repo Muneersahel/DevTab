@@ -1,0 +1,10 @@
+# Fast staged formatting first so only touched files get reformatted.
+npx lint-staged
+
+# Full-project type check — cheap and catches most regressions.
+npm run typecheck
+
+# NOTE: `npm test` is intentionally omitted until the pre-existing
+# TestBed.initTestEnvironment() issue in the spec setup is fixed. Re-enable
+# once the suite passes locally by adding:
+#   npm test -- --run

@@ -1,0 +1,426 @@
+<main class="relative min-h-screen overflow-hidden bg-neutral-950 text-zinc-100">
+  <div
+    class="pointer-events-none absolute inset-x-0 top-0 h-90 bg-[radial-gradient(80%_60%_at_50%_0%,rgba(52,211,153,0.08),transparent_70%)]"
+    aria-hidden="true"
+  ></div>
+
+  <!--
+    Thin indeterminate progress bar that surfaces background syncs without
+    stealing attention. Inspired by Linear / GitHub nav progress bars.
+  -->
+  <div
+    class="pointer-events-none fixed inset-x-0 top-0 z-10 h-0.5 overflow-hidden transition-opacity duration-200"
+    [class.opacity-0]="!isSyncing()"
+    [class.opacity-100]="isSyncing()"
+    aria-hidden="true"
+  >
+    <div class="dt-progress-rail h-full w-1/3 bg-emerald-400/70"></div>
+  </div>
+
+  <div
+    class="relative mx-auto flex min-h-screen w-full max-w-360 flex-col px-6 py-8 lg:px-10 lg:py-10"
+  >
+    <header class="flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <img class="h-9 w-9" ngSrc="icons/icon-128.png" width="36" height="36" alt="" priority />
+        <div class="flex flex-col">
+          <h1 class="text-[15px] font-semibold leading-tight tracking-tight text-zinc-50">
+            DevTab
+          </h1>
+          <p class="text-xs text-zinc-500">WakaTime activity · last 7 days</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        @if (dashboard(); as data) {
+          <span
+            class="relative hidden items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors duration-300 sm:inline-flex"
+            [class.text-emerald-300]="data.status.tone === 'ok'"
+            [class.text-amber-300]="data.status.tone !== 'ok'"
+            [class]="data.status.tone === 'ok' ? 'border-emerald-400/20' : 'border-amber-400/20'"
+            [class]="data.status.tone === 'ok' ? 'bg-emerald-400/5' : 'bg-amber-400/5'"
+          >
+            <span class="relative flex h-1.5 w-1.5 items-center justify-center" aria-hidden="true">
+              @if (justRefreshed()) {
+                <span class="absolute inset-0 animate-ping rounded-full bg-emerald-400/60"></span>
+              }
+              <span
+                class="relative h-1.5 w-1.5 rounded-full"
+                [class.bg-emerald-400]="data.status.tone === 'ok'"
+                [class.bg-amber-400]="data.status.tone !== 'ok'"
+                [class.animate-pulse]="data.status.tone !== 'ok'"
+              ></span>
+            </span>
+            {{ data.status.label }}
+          </span>
+        }
+        <button
+          class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/2 px-3 py-2 text-[13px] font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/4 disabled:cursor-not-allowed disabled:opacity-50"
+          type="button"
+          [disabled]="isSyncing()"
+          (click)="refreshRequested.emit()"
+          aria-label="Refresh stats"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            [class.animate-spin]="isSyncing()"
+          >
+            <path d="M21 12a9 9 0 1 1-3-6.7" />
+            <path d="M21 4v5h-5" />
+          </svg>
+          Refresh
+        </button>
+        <button
+          class="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-[13px] font-semibold text-neutral-950 transition hover:bg-white"
+          type="button"
+          (click)="settingsRequested.emit()"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+            />
+          </svg>
+          Settings
+        </button>
+      </div>
+    </header>
+
+    @if (dashboard(); as data) {
+      <section class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Summary metrics">
+        <dt-metric-card
+          tone="accent"
+          label="Total coded"
+          [value]="data.totalTime"
+          [detail]="data.rangeLabel"
+          [caption]="data.bestDay ? 'Best day · ' + data.bestDay.text : ''"
+        />
+        <dt-metric-card
+          label="Daily average"
+          [value]="data.dailyAverage"
+          detail="Across tracked coding days"
+        />
+        <dt-metric-card
+          label="Top language"
+          [value]="data.topLanguage?.name ?? 'No language yet'"
+          [detail]="data.topLanguage?.time ?? '—'"
+          [caption]="
+            data.topLanguage ? (data.topLanguage.percent | number: '1.0-0') + '% of total' : ''
+          "
+        />
+        <dt-metric-card
+          label="Top project"
+          [value]="data.topProject?.name ?? 'No project yet'"
+          [detail]="data.topProject?.time ?? '—'"
+          [caption]="
+            data.topProject ? (data.topProject.percent | number: '1.0-0') + '% of total' : ''
+          "
+        />
+      </section>
+
+      <section class="mt-6 grid gap-4 lg:grid-cols-3" aria-label="Visual analytics">
+        <article
+          class="rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2 lg:col-span-2"
+        >
+          <header class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+                Weekly activity
+              </h2>
+              <p class="mt-1 text-[15px] font-semibold text-zinc-100">Coding minutes per day</p>
+            </div>
+            @if (data.bestDay) {
+              <div class="text-right">
+                <p class="text-[11px] uppercase tracking-[0.14em] text-zinc-500">Peak</p>
+                <p class="mt-1 text-sm font-medium tabular-nums text-emerald-300">
+                  {{ data.bestDay.text }}
+                </p>
+              </div>
+            }
+          </header>
+
+          @if (data.activityUnavailable) {
+            <p class="mt-6 rounded-lg border border-white/5 bg-white/2 p-4 text-sm text-zinc-400">
+              Daily activity is temporarily unavailable. Summary stats are still current.
+            </p>
+          } @else if (data.activity.length) {
+            <div class="mt-5 h-55">
+              <dt-activity-chart [data]="data.activity" />
+            </div>
+          } @else {
+            <p class="mt-6 text-sm text-zinc-500">No activity recorded yet.</p>
+          }
+        </article>
+
+        <article
+          class="rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2"
+        >
+          <header>
+            <h2 class="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+              Languages
+            </h2>
+            <p class="mt-1 text-[15px] font-semibold text-zinc-100">Breakdown</p>
+          </header>
+
+          @if (data.languages.length) {
+            <div class="mt-5 flex items-center gap-5">
+              <div class="relative h-35 w-35 shrink-0">
+                <dt-language-donut [data]="data.languages" />
+                @if (data.topLanguage) {
+                  <div
+                    class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center"
+                  >
+                    <p class="text-[10px] uppercase tracking-[0.14em] text-zinc-500">Top</p>
+                    <p
+                      class="mt-0.5 max-w-22.5 truncate text-sm font-semibold text-zinc-100"
+                      [title]="data.topLanguage.name"
+                    >
+                      {{ data.topLanguage.name }}
+                    </p>
+                    <p class="text-[11px] tabular-nums text-zinc-400">
+                      {{ data.topLanguage.percent | number: '1.0-0' }}%
+                    </p>
+                  </div>
+                }
+              </div>
+              <ul class="flex-1 space-y-2 text-[13px]">
+                @for (lang of data.languages; track lang.name; let i = $index) {
+                  <li class="flex items-center justify-between gap-2">
+                    <div class="flex min-w-0 items-center gap-2">
+                      <span
+                        class="h-2 w-2 shrink-0 rounded-full"
+                        [style.background]="legendColor(i)"
+                        aria-hidden="true"
+                      ></span>
+                      <span class="truncate text-zinc-200">{{ lang.name }}</span>
+                    </div>
+                    <span class="shrink-0 tabular-nums text-zinc-500">
+                      {{ lang.percent | number: '1.0-0' }}%
+                    </span>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            <p class="mt-6 text-sm text-zinc-500">No language data yet.</p>
+          }
+        </article>
+      </section>
+
+      <section class="mt-6 grid gap-4 lg:grid-cols-3" aria-label="Detailed breakdown">
+        <article
+          class="rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2 lg:col-span-2"
+        >
+          <header>
+            <h2 class="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+              Projects
+            </h2>
+            <p class="mt-1 text-[15px] font-semibold text-zinc-100">Where your time went</p>
+          </header>
+          <div class="mt-5">
+            <dt-usage-list [items]="data.projects" emptyMessage="No project data yet." />
+          </div>
+        </article>
+
+        <article
+          class="rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2"
+        >
+          <header>
+            <h2 class="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+              Environment
+            </h2>
+            <p class="mt-1 text-[15px] font-semibold text-zinc-100">Tools & surfaces</p>
+          </header>
+
+          <div class="mt-5 space-y-5">
+            <section>
+              <h3 class="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-500">
+                Editors
+              </h3>
+              <dt-usage-list
+                [items]="data.editors"
+                [showSwatch]="false"
+                accent="#60a5fa"
+                emptyMessage="No editor data yet."
+              />
+            </section>
+
+            <section class="border-t border-white/4 pt-5">
+              <h3 class="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-500">
+                Operating systems
+              </h3>
+              <dt-usage-list
+                [items]="data.operatingSystems"
+                [showSwatch]="false"
+                accent="#c084fc"
+                emptyMessage="No OS data yet."
+              />
+            </section>
+
+            <section class="border-t border-white/4 pt-5">
+              <h3 class="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-500">
+                Categories
+              </h3>
+              <dt-usage-list
+                [items]="data.categories"
+                [showSwatch]="false"
+                accent="#34d399"
+                emptyMessage="No category data yet."
+              />
+            </section>
+          </div>
+        </article>
+      </section>
+
+      <footer
+        class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/4 bg-white/1 px-4 py-3 text-[12px] text-zinc-500"
+      >
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-1">
+          <span class="inline-flex items-center gap-1.5">
+            <span
+              class="h-1.5 w-1.5 rounded-full"
+              [class.bg-emerald-400]="data.status.tone === 'ok'"
+              [class.bg-amber-400]="data.status.tone !== 'ok'"
+              aria-hidden="true"
+            ></span>
+            <span class="text-zinc-300">{{ data.status.label }}</span>
+            <span>· {{ data.status.detail }}</span>
+          </span>
+          <span>Range · {{ data.rangeLabel }}</span>
+          <span>
+            Last updated ·
+            <span class="text-zinc-300">
+              {{ data.lastUpdated ? (data.lastUpdated | date: 'short') : 'Unknown' }}
+            </span>
+          </span>
+        </div>
+        @if (isUpdating()) {
+          <span
+            class="rounded-md border border-amber-400/20 bg-amber-400/5 px-2 py-1 text-[11px] font-medium text-amber-300"
+          >
+            Updating
+          </span>
+        }
+      </footer>
+    } @else if (state().kind === 'loading') {
+      <div class="mt-8">
+        <dt-dashboard-skeleton />
+      </div>
+    } @else {
+      <section class="mt-8 grid flex-1 place-items-center py-10">
+        @switch (state().kind) {
+          @case ('missing_auth') {
+            <section
+              class="w-full max-w-md rounded-2xl border border-white/6 bg-zinc-950/80 p-8 text-center ring-1 ring-inset ring-white/2"
+            >
+              <div
+                class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-300"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 2v6" />
+                  <path d="M12 22v-6" />
+                  <path d="m4.93 4.93 4.24 4.24" />
+                  <path d="m14.83 14.83 4.24 4.24" />
+                  <path d="M2 12h6" />
+                  <path d="M22 12h-6" />
+                </svg>
+              </div>
+              <h2 class="mt-4 text-xl font-semibold tracking-tight text-zinc-50">
+                Connect WakaTime
+              </h2>
+              <p class="mt-2 text-sm leading-6 text-zinc-400">
+                Save your WakaTime API key to see coding stats each time a new tab opens.
+              </p>
+              <button
+                class="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-300"
+                type="button"
+                (click)="settingsRequested.emit()"
+              >
+                Add credential
+              </button>
+            </section>
+          }
+          @case ('invalid_auth') {
+            <section
+              class="w-full max-w-md rounded-2xl border border-amber-400/15 bg-zinc-950/80 p-8 text-center ring-1 ring-inset ring-white/2"
+            >
+              <h2 class="text-xl font-semibold tracking-tight text-zinc-50">Reconnect WakaTime</h2>
+              <p class="mt-2 text-sm leading-6 text-zinc-400">
+                The saved credential did not work. Update it to resume your dashboard.
+              </p>
+              <button
+                class="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-300"
+                type="button"
+                (click)="settingsRequested.emit()"
+              >
+                Update credential
+              </button>
+            </section>
+          }
+          @case ('error') {
+            <section
+              class="w-full max-w-md rounded-2xl border border-white/6 bg-zinc-950/80 p-8 ring-1 ring-inset ring-white/2"
+            >
+              <h2 class="text-xl font-semibold tracking-tight text-zinc-50">
+                Stats could not load
+              </h2>
+              <p class="mt-2 text-sm leading-6 text-zinc-400">{{ errorMessage() }}</p>
+              <div class="mt-6 flex gap-2">
+                <button
+                  class="inline-flex items-center justify-center rounded-lg bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-300"
+                  type="button"
+                  (click)="refreshRequested.emit()"
+                >
+                  Try again
+                </button>
+                @if (errorDebug()) {
+                  <button
+                    class="rounded-lg border border-white/10 bg-white/2 px-4 py-2.5 text-sm text-zinc-200 hover:bg-white/5"
+                    type="button"
+                    (click)="debugOpen.update((open) => !open)"
+                  >
+                    Debug details
+                  </button>
+                }
+              </div>
+              @if (debugOpen() && errorDebug()) {
+                <pre
+                  class="mt-4 max-h-60 overflow-auto rounded-lg border border-white/5 bg-black/40 p-3 text-xs text-zinc-400"
+                  >{{ errorDebug() }}</pre
+                >
+              }
+            </section>
+          }
+        }
+      </section>
+    }
+  </div>
+</main>

@@ -23,7 +23,7 @@ import { CHART_PALETTE } from './chart-registry';
             <span class="shrink-0 text-xs tabular-nums text-zinc-400">{{ item.time }}</span>
           </div>
           <div class="mt-2 flex items-center gap-2.5">
-            <div class="h-1 flex-1 overflow-hidden rounded-full bg-white/[0.04]">
+            <div class="h-1 flex-1 overflow-hidden rounded-full bg-white/4">
               <div
                 class="h-full rounded-full"
                 [style.width.%]="item.percent"

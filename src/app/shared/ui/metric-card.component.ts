@@ -6,11 +6,11 @@ export type MetricTone = 'default' | 'accent';
   selector: 'dt-metric-card',
   template: `
     <article
-      class="group relative flex h-full flex-col justify-between overflow-hidden rounded-xl border border-white/[0.06] bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/[0.02] transition-colors hover:border-white/[0.1]"
+      class="group relative flex h-full flex-col justify-between overflow-hidden rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2 transition-colors hover:border-white/10"
       [class.bg-gradient-to-br]="tone() === 'accent'"
-      [class.from-emerald-500/10]="tone() === 'accent'"
       [class.to-transparent]="tone() === 'accent'"
-      [class.border-emerald-400/20]="tone() === 'accent'"
+      [class]="tone() === 'accent' ? 'from-emerald-500/10' : ''"
+      [class]="tone() === 'accent' ? 'border-emerald-400/20' : ''"
     >
       <header class="flex items-start justify-between gap-2">
         <p class="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500">
@@ -38,7 +38,7 @@ export type MetricTone = 'default' | 'accent';
 
       @if (caption()) {
         <footer class="mt-4 flex items-center gap-2 text-[11px] text-zinc-500">
-          <span class="h-px flex-1 bg-white/[0.04]"></span>
+          <span class="h-px flex-1 bg-white/4"></span>
           <span class="truncate">{{ caption() }}</span>
         </footer>
       }

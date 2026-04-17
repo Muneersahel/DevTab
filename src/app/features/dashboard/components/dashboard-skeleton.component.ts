@@ -20,19 +20,19 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-hidden="true">
         @for (_ of metrics; track $index) {
           <article
-            class="flex h-full flex-col justify-between rounded-xl border border-white/[0.06] bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/[0.02]"
+            class="flex h-full flex-col justify-between rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2"
           >
             <div class="flex items-start justify-between gap-2">
-              <div class="h-2.5 w-20 animate-pulse rounded bg-white/[0.06]"></div>
-              <div class="h-2 w-2 animate-pulse rounded-full bg-white/[0.06]"></div>
+              <div class="h-2.5 w-20 animate-pulse rounded bg-white/6"></div>
+              <div class="h-2 w-2 animate-pulse rounded-full bg-white/6"></div>
             </div>
             <div class="mt-4 space-y-2">
-              <div class="h-7 w-28 animate-pulse rounded bg-white/[0.08]"></div>
-              <div class="h-3 w-36 animate-pulse rounded bg-white/[0.05]"></div>
+              <div class="h-7 w-28 animate-pulse rounded bg-white/8"></div>
+              <div class="h-3 w-36 animate-pulse rounded bg-white/5"></div>
             </div>
             <div class="mt-4 flex items-center gap-2">
-              <span class="h-px flex-1 bg-white/[0.04]"></span>
-              <span class="h-2 w-16 animate-pulse rounded bg-white/[0.05]"></span>
+              <span class="h-px flex-1 bg-white/4"></span>
+              <span class="h-2 w-16 animate-pulse rounded bg-white/5"></span>
             </div>
           </article>
         }
@@ -41,56 +41,49 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       <!-- Activity chart + language breakdown -->
       <section class="grid gap-4 lg:grid-cols-3" aria-hidden="true">
         <article
-          class="rounded-xl border border-white/[0.06] bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/[0.02] lg:col-span-2"
+          class="rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2 lg:col-span-2"
         >
           <header class="flex items-start justify-between gap-3">
             <div class="space-y-2">
-              <div class="h-2.5 w-24 animate-pulse rounded bg-white/[0.06]"></div>
-              <div class="h-4 w-40 animate-pulse rounded bg-white/[0.08]"></div>
+              <div class="h-2.5 w-24 animate-pulse rounded bg-white/6"></div>
+              <div class="h-4 w-40 animate-pulse rounded bg-white/8"></div>
             </div>
             <div class="space-y-2 text-right">
-              <div class="ml-auto h-2.5 w-10 animate-pulse rounded bg-white/[0.06]"></div>
-              <div class="ml-auto h-3 w-20 animate-pulse rounded bg-white/[0.05]"></div>
+              <div class="ml-auto h-2.5 w-10 animate-pulse rounded bg-white/6"></div>
+              <div class="ml-auto h-3 w-20 animate-pulse rounded bg-white/5"></div>
             </div>
           </header>
 
           <!-- Fake bar chart rail -->
-          <div class="mt-6 flex h-[220px] items-end gap-3">
+          <div class="mt-6 flex h-55 items-end gap-3">
             @for (bar of bars; track $index) {
-              <div
-                class="flex-1 animate-pulse rounded-t bg-white/[0.05]"
-                [style.height.%]="bar"
-              ></div>
+              <div class="flex-1 animate-pulse rounded-t bg-white/5" [style.height.%]="bar"></div>
             }
           </div>
         </article>
 
         <article
-          class="rounded-xl border border-white/[0.06] bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/[0.02]"
+          class="rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2"
         >
           <header class="space-y-2">
-            <div class="h-2.5 w-20 animate-pulse rounded bg-white/[0.06]"></div>
-            <div class="h-4 w-24 animate-pulse rounded bg-white/[0.08]"></div>
+            <div class="h-2.5 w-20 animate-pulse rounded bg-white/6"></div>
+            <div class="h-4 w-24 animate-pulse rounded bg-white/8"></div>
           </header>
 
           <div class="mt-5 flex items-center gap-5">
-            <div
-              class="relative h-[140px] w-[140px] shrink-0 animate-pulse rounded-full bg-white/[0.05]"
-            >
+            <div class="relative h-35 w-35 shrink-0 animate-pulse rounded-full bg-white/5">
               <div
-                class="absolute inset-[18px] rounded-full bg-zinc-950/80 ring-1 ring-inset ring-white/[0.04]"
+                class="absolute inset-4.5 rounded-full bg-zinc-950/80 ring-1 ring-inset ring-white/4"
               ></div>
             </div>
             <ul class="flex-1 space-y-3">
               @for (_ of legend; track $index) {
                 <li class="flex items-center justify-between gap-2">
                   <div class="flex min-w-0 items-center gap-2">
-                    <span
-                      class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-white/[0.08]"
-                    ></span>
-                    <span class="h-2.5 w-24 animate-pulse rounded bg-white/[0.06]"></span>
+                    <span class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-white/8"></span>
+                    <span class="h-2.5 w-24 animate-pulse rounded bg-white/6"></span>
                   </div>
-                  <span class="h-2.5 w-8 animate-pulse rounded bg-white/[0.05]"></span>
+                  <span class="h-2.5 w-8 animate-pulse rounded bg-white/5"></span>
                 </li>
               }
             </ul>
@@ -101,30 +94,28 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       <!-- Projects + environment -->
       <section class="grid gap-4 lg:grid-cols-3" aria-hidden="true">
         <article
-          class="rounded-xl border border-white/[0.06] bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/[0.02] lg:col-span-2"
+          class="rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2 lg:col-span-2"
         >
           <header class="space-y-2">
-            <div class="h-2.5 w-20 animate-pulse rounded bg-white/[0.06]"></div>
-            <div class="h-4 w-48 animate-pulse rounded bg-white/[0.08]"></div>
+            <div class="h-2.5 w-20 animate-pulse rounded bg-white/6"></div>
+            <div class="h-4 w-48 animate-pulse rounded bg-white/8"></div>
           </header>
           <ul class="mt-5 space-y-3">
             @for (row of projectRows; track $index) {
               <li class="space-y-2">
                 <div class="flex items-center justify-between gap-3">
                   <div class="flex min-w-0 items-center gap-2">
+                    <span class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-white/8"></span>
                     <span
-                      class="h-2 w-2 shrink-0 animate-pulse rounded-full bg-white/[0.08]"
-                    ></span>
-                    <span
-                      class="h-3 animate-pulse rounded bg-white/[0.06]"
+                      class="h-3 animate-pulse rounded bg-white/6"
                       [style.width.px]="row.name"
                     ></span>
                   </div>
-                  <span class="h-3 w-16 animate-pulse rounded bg-white/[0.05]"></span>
+                  <span class="h-3 w-16 animate-pulse rounded bg-white/5"></span>
                 </div>
-                <div class="h-1.5 overflow-hidden rounded-full bg-white/[0.04]">
+                <div class="h-1.5 overflow-hidden rounded-full bg-white/4">
                   <div
-                    class="h-full animate-pulse rounded-full bg-white/[0.08]"
+                    class="h-full animate-pulse rounded-full bg-white/8"
                     [style.width.%]="row.bar"
                   ></div>
                 </div>
@@ -134,24 +125,24 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         </article>
 
         <article
-          class="rounded-xl border border-white/[0.06] bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/[0.02]"
+          class="rounded-xl border border-white/6 bg-zinc-950/80 p-5 ring-1 ring-inset ring-white/2"
         >
           <header class="space-y-2">
-            <div class="h-2.5 w-24 animate-pulse rounded bg-white/[0.06]"></div>
-            <div class="h-4 w-36 animate-pulse rounded bg-white/[0.08]"></div>
+            <div class="h-2.5 w-24 animate-pulse rounded bg-white/6"></div>
+            <div class="h-4 w-36 animate-pulse rounded bg-white/8"></div>
           </header>
           <div class="mt-5 space-y-5">
             @for (group of envGroups; track $index; let first = $first) {
-              <section [class]="first ? '' : 'border-t border-white/[0.04] pt-5'">
-                <div class="mb-3 h-2.5 w-20 animate-pulse rounded bg-white/[0.06]"></div>
+              <section [class]="first ? '' : 'border-t border-white/4 pt-5'">
+                <div class="mb-3 h-2.5 w-20 animate-pulse rounded bg-white/6"></div>
                 <ul class="space-y-3">
                   @for (row of group; track $index) {
                     <li class="flex items-center justify-between gap-3">
                       <span
-                        class="h-3 animate-pulse rounded bg-white/[0.06]"
+                        class="h-3 animate-pulse rounded bg-white/6"
                         [style.width.px]="row"
                       ></span>
-                      <span class="h-3 w-10 animate-pulse rounded bg-white/[0.05]"></span>
+                      <span class="h-3 w-10 animate-pulse rounded bg-white/5"></span>
                     </li>
                   }
                 </ul>
@@ -163,13 +154,13 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 
       <!-- Footer -->
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.04] bg-white/[0.01] px-4 py-3"
+        class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/4 bg-white/1 px-4 py-3"
         aria-hidden="true"
       >
         <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <span class="h-2.5 w-28 animate-pulse rounded bg-white/[0.06]"></span>
-          <span class="h-2.5 w-24 animate-pulse rounded bg-white/[0.05]"></span>
-          <span class="h-2.5 w-36 animate-pulse rounded bg-white/[0.05]"></span>
+          <span class="h-2.5 w-28 animate-pulse rounded bg-white/6"></span>
+          <span class="h-2.5 w-24 animate-pulse rounded bg-white/5"></span>
+          <span class="h-2.5 w-36 animate-pulse rounded bg-white/5"></span>
         </div>
       </div>
     </div>

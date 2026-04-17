@@ -43,31 +43,31 @@ Extension files live in `public/`, including `manifest.json` and generated icon 
 ## Install
 
 ```bash
-npm install
+pnpm install
 ```
 
 ## Useful Commands
 
 ```bash
-npm run build
+pnpm build
 ```
 
 Builds the Chrome extension into `dist/devtab`.
 
 ```bash
-npm run typecheck
+pnpm typecheck
 ```
 
 Runs Angular's compiler type check.
 
 ```bash
-npm test -- --watch=false
+pnpm test -- --watch=false
 ```
 
 Runs the Vitest suite once.
 
 ```bash
-npm start
+pnpm start
 ```
 
 Runs the Angular dev server for quick UI iteration. This is useful for layout work, but browser-extension APIs such as `chrome.storage.local` only behave fully when loaded as an unpacked extension.
@@ -77,7 +77,7 @@ Runs the Angular dev server for quick UI iteration. This is useful for layout wo
 1. Build the extension:
 
    ```bash
-   npm run build
+   pnpm build
    ```
 
 2. Open Chrome and go to:
@@ -102,7 +102,7 @@ Runs the Angular dev server for quick UI iteration. This is useful for layout wo
 
 8. Confirm the dashboard loads. To test auth handling, save an invalid token and refresh; DevTab should show the reconnect state without raw API JSON.
 
-After code changes, run `npm run build`, return to `chrome://extensions`, and click the reload button on the DevTab extension card before opening a fresh new tab.
+After code changes, run `pnpm build`, return to `chrome://extensions`, and click the reload button on the DevTab extension card before opening a fresh new tab.
 
 ## WakaTime Credentials
 
@@ -115,7 +115,7 @@ Secrets are not hardcoded and are stored only in browser-local extension storage
 
 ## Notes
 
-`npm run build` uses `tools/build-extension.mjs` instead of the stock `ng build` command. In this environment, Angular's default production builder deadlocked inside esbuild, so the custom builder runs Angular AOT compilation, bundles the app, processes Tailwind CSS, and copies Manifest V3 assets into a loadable extension directory.
+`pnpm build` uses `tools/build-extension.mjs` instead of the stock `ng build` command. In this environment, Angular's default production builder deadlocked inside esbuild, so the custom builder runs Angular AOT compilation, bundles the app, processes Tailwind CSS, and copies Manifest V3 assets into a loadable extension directory.
 
 ## Contributing
 
@@ -124,8 +124,10 @@ Contributions are welcome — bug fixes, new widgets, polish, docs. See
 conventions, and PR checklist.
 
 The repo ships with a Husky pre-commit hook that runs Prettier on staged
-files and `npm run typecheck`, so most formatting and type issues get caught
+files and `pnpm typecheck`, so most formatting and type issues get caught
 before the commit lands.
+
+This project uses [pnpm](https://pnpm.io/) as its package manager.
 
 ## License
 

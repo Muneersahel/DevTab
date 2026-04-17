@@ -8,10 +8,10 @@ expect when you open a pull request.
 ## Getting Started
 
 1. Fork the repository and clone your fork.
-2. Install dependencies:
+2. Install dependencies (the project uses [pnpm](https://pnpm.io/)):
 
    ```bash
-   npm install
+   pnpm install
    ```
 
    The `prepare` script installs Husky hooks automatically.
@@ -19,7 +19,7 @@ expect when you open a pull request.
 3. Run the dev server for quick UI iteration:
 
    ```bash
-   npm start
+   pnpm start
    ```
 
    Note that browser-extension APIs such as `chrome.storage.local` only behave
@@ -29,7 +29,7 @@ expect when you open a pull request.
 4. Build the extension into `dist/devtab`:
 
    ```bash
-   npm run build
+   pnpm build
    ```
 
 ## Development Workflow
@@ -65,8 +65,8 @@ expect when you open a pull request.
 Run these locally before opening a PR:
 
 ```bash
-npm run typecheck
-npm test -- --run
+pnpm typecheck
+pnpm test -- --run
 ```
 
 The pre-commit hook runs `lint-staged` + `typecheck` automatically on every

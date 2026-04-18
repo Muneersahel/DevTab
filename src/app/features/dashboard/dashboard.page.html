@@ -574,11 +574,18 @@
           </span>
           <span>Range · {{ data.rangeLabel }}</span>
           <span>
-            Last updated ·
-            <span class="text-zinc-300">
-              {{ data.lastUpdated ? (data.lastUpdated | date: 'short') : 'Unknown' }}
-            </span>
+            Refreshed ·
+            <span class="text-zinc-300">{{ data.fetchedAt | date: 'short' }}</span>
           </span>
+          @if (data.cacheUpdatedAt) {
+            <span
+              class="text-zinc-500"
+              title="When WakaTime last rebuilt its stats cache. Heartbeats happen in real time; the server cache can lag hours behind."
+            >
+              WakaTime cache ·
+              <span class="text-zinc-400">{{ data.cacheUpdatedAt | date: 'short' }}</span>
+            </span>
+          }
         </div>
         @if (isUpdating()) {
           <span

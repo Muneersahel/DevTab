@@ -12,7 +12,10 @@ import { BestDay } from '../models/wakatime-stats.model';
 
 const CREDENTIAL_KEY = 'devtab.wakatimeCredential';
 const DASHBOARD_CACHE_KEY = 'devtab.dashboardCache';
-const DASHBOARD_CACHE_VERSION = 2;
+const DASHBOARD_CACHE_VERSION = 3;
+// v2 persisted a single `lastUpdated` timestamp. We still read those entries
+// so a user upgrading DevTab doesn't see an empty splash.
+const DASHBOARD_CACHE_COMPATIBLE_VERSIONS = new Set([2, 3]);
 
 interface CachedDashboardEnvelope {
   version: number;
@@ -20,8 +23,9 @@ interface CachedDashboardEnvelope {
   data: SerializedDashboard;
 }
 
-interface SerializedDashboard extends Omit<DashboardViewModel, 'lastUpdated'> {
-  lastUpdated: string | null;
+interface SerializedDashboard extends Omit<DashboardViewModel, 'fetchedAt' | 'cacheUpdatedAt'> {
+  fetchedAt: string;
+  cacheUpdatedAt: string | null;
 }
 
 export interface CachedDashboard {
@@ -179,7 +183,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function serializeDashboard(data: DashboardViewModel): SerializedDashboard {
   return {
     ...data,
-    lastUpdated: data.lastUpdated ? data.lastUpdated.toISOString() : null,
+    fetchedAt: data.fetchedAt.toISOString(),
+    cacheUpdatedAt: data.cacheUpdatedAt ? data.cacheUpdatedAt.toISOString() : null,
   };
 }
 
@@ -190,7 +195,10 @@ function parseCachedDashboard(value: unknown): CachedDashboard | null {
     return null;
   }
 
-  if (parsed['version'] !== DASHBOARD_CACHE_VERSION) {
+  if (
+    typeof parsed['version'] !== 'number' ||
+    !DASHBOARD_CACHE_COMPATIBLE_VERSIONS.has(parsed['version'])
+  ) {
     return null;
   }
 
@@ -203,7 +211,7 @@ function parseCachedDashboard(value: unknown): CachedDashboard | null {
     return null;
   }
 
-  const data = deserializeDashboard(parsed['data']);
+  const data = deserializeDashboard(parsed['data'], cachedAt);
   if (!data) {
     return null;
   }
@@ -211,7 +219,10 @@ function parseCachedDashboard(value: unknown): CachedDashboard | null {
   return { cachedAt, data };
 }
 
-function deserializeDashboard(value: Record<string, unknown>): DashboardViewModel | null {
+function deserializeDashboard(
+  value: Record<string, unknown>,
+  cachedAt: Date,
+): DashboardViewModel | null {
   const languages = parseUsageItems(value['languages']);
   const projects = parseUsageItems(value['projects']);
   const categories = parseUsageItems(value['categories']);
@@ -241,8 +252,23 @@ function deserializeDashboard(value: Record<string, unknown>): DashboardViewMode
     return null;
   }
 
-  const lastUpdated =
+  // v3 fields
+  const rawFetchedAt = typeof value['fetchedAt'] === 'string' ? new Date(value['fetchedAt']) : null;
+  const rawCacheUpdatedAt =
+    typeof value['cacheUpdatedAt'] === 'string' ? new Date(value['cacheUpdatedAt']) : null;
+  // v2 fallback — `lastUpdated` used to conflate fetch time with server cache
+  // time. Treat it as the WakaTime cache timestamp and use the envelope's
+  // `cachedAt` as our best guess for when DevTab actually fetched.
+  const legacyLastUpdated =
     typeof value['lastUpdated'] === 'string' ? new Date(value['lastUpdated']) : null;
+
+  const fetchedAt = rawFetchedAt && !Number.isNaN(rawFetchedAt.getTime()) ? rawFetchedAt : cachedAt;
+  const cacheUpdatedAt =
+    rawCacheUpdatedAt && !Number.isNaN(rawCacheUpdatedAt.getTime())
+      ? rawCacheUpdatedAt
+      : legacyLastUpdated && !Number.isNaN(legacyLastUpdated.getTime())
+        ? legacyLastUpdated
+        : null;
 
   const totalTimeIncludingOther =
     typeof value['totalTimeIncludingOther'] === 'string' ? value['totalTimeIncludingOther'] : null;
@@ -271,7 +297,8 @@ function deserializeDashboard(value: Record<string, unknown>): DashboardViewMode
     activity,
     activityUnavailable: value['activityUnavailable'],
     visibility,
-    lastUpdated: lastUpdated && !Number.isNaN(lastUpdated.getTime()) ? lastUpdated : null,
+    fetchedAt,
+    cacheUpdatedAt,
     status,
   };
 }

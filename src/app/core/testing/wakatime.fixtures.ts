@@ -139,14 +139,80 @@ export function createSummariesResponse(): WakaTimeSummariesResponse {
       summaryDay('2026-04-12', 7200, '2 hrs'),
       summaryDay('2026-04-13', 0, '0 secs'),
       summaryDay('2026-04-14', 10800, '3 hrs'),
-      summaryDay('2026-04-15', 15120, '4 hrs 12 mins'),
+      summaryDay(
+        '2026-04-15',
+        15120,
+        '4 hrs 12 mins',
+        // Rich breakdown on the peak day so aggregation picks TypeScript /
+        // DevTab as the top items without needing to repeat data on every day.
+        {
+          languages: [
+            { name: 'TypeScript', total_seconds: 9072, percent: 60, text: '2 hrs 31 mins' },
+            { name: 'CSS', total_seconds: 6048, percent: 40, text: '1 hr 41 mins' },
+          ],
+          projects: [{ name: 'DevTab', total_seconds: 15120, percent: 100, text: '4 hrs 12 mins' }],
+          categories: [
+            { name: 'Coding', total_seconds: 15120, percent: 100, text: '4 hrs 12 mins' },
+          ],
+          editors: [{ name: 'VS Code', total_seconds: 15120, percent: 100, text: '4 hrs 12 mins' }],
+          operating_systems: [
+            { name: 'macOS', total_seconds: 15120, percent: 100, text: '4 hrs 12 mins' },
+          ],
+        },
+      ),
       summaryDay('2026-04-16', 14400, '4 hrs'),
       summaryDay('2026-04-17', 13680, '3 hrs 48 mins'),
     ],
+    cumulative_total: {
+      seconds: 64800,
+      text: '18 hrs',
+      decimal: '18.00',
+      digital: '18:00',
+    },
+    daily_average: {
+      seconds: 9257,
+      text: '2 hrs 34 mins',
+      days_including_holidays: 7,
+      days_minus_holidays: 7,
+      holidays: 0,
+    },
+    start: '2026-04-11T00:00:00Z',
+    end: '2026-04-17T23:59:59Z',
   };
 }
 
-function summaryDay(date: string, totalSeconds: number, text: string) {
+interface DayBreakdown {
+  languages?: Array<{ name: string; total_seconds: number; percent: number; text: string }>;
+  projects?: Array<{ name: string; total_seconds: number; percent: number; text: string }>;
+  categories?: Array<{ name: string; total_seconds: number; percent: number; text: string }>;
+  editors?: Array<{ name: string; total_seconds: number; percent: number; text: string }>;
+  operating_systems?: Array<{
+    name: string;
+    total_seconds: number;
+    percent: number;
+    text: string;
+  }>;
+}
+
+function summaryDay(
+  date: string,
+  totalSeconds: number,
+  text: string,
+  breakdown: DayBreakdown = {},
+) {
+  const stub = {
+    decimal: '0.00',
+    digital: '00:00',
+    hours: 0,
+    minutes: 0,
+  };
+
+  const withStub = <
+    T extends { name: string; total_seconds: number; percent: number; text: string },
+  >(
+    items: T[] | undefined,
+  ) => items?.map((item) => ({ ...stub, ...item })) ?? [];
+
   return {
     grand_total: {
       decimal: '0.00',
@@ -163,5 +229,10 @@ function summaryDay(date: string, totalSeconds: number, text: string) {
       text: date,
       timezone: 'Africa/Dar_es_Salaam',
     },
+    languages: withStub(breakdown.languages),
+    projects: withStub(breakdown.projects),
+    categories: withStub(breakdown.categories),
+    editors: withStub(breakdown.editors),
+    operating_systems: withStub(breakdown.operating_systems),
   };
 }

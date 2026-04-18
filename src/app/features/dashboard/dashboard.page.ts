@@ -119,7 +119,7 @@ export class DashboardPageComponent {
   /**
    * Flips to `true` for ~900ms whenever a fresh payload lands, to power a
    * subtle "live" pulse on the status chip. Tracked via the data identity
-   * (`lastUpdated` timestamp) so a stable render doesn't re-trigger it.
+   * (`fetchedAt` timestamp) so a stable render doesn't re-trigger it.
    */
   protected readonly justRefreshed = signal(false);
   private lastSignature: string | null = null;
@@ -132,7 +132,7 @@ export class DashboardPageComponent {
         return;
       }
 
-      const signature = `${state.kind}:${state.data.lastUpdated?.toISOString() ?? ''}:${
+      const signature = `${state.kind}:${state.data.fetchedAt.toISOString()}:${
         state.data.totalTime
       }`;
 

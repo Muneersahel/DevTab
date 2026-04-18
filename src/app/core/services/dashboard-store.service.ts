@@ -68,6 +68,10 @@ export class DashboardStoreService {
     }
 
     this.fetching.set(true);
+    // Stamp the fetch time *before* awaiting the network so the timestamp
+    // reflects when the user actually asked for fresh data, not when the
+    // slowest response happened to resolve.
+    const fetchedAt = new Date();
 
     try {
       const stats = await this.api.fetchStats(credential);
@@ -79,7 +83,7 @@ export class DashboardStoreService {
         summaries = null;
       }
 
-      const data = normalizeDashboard(stats, summaries);
+      const data = normalizeDashboard(stats, summaries, { fetchedAt });
       const nextState: DashboardState = shouldShowUpdating(stats)
         ? { kind: 'updating', data }
         : { kind: 'ready', data };

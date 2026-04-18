@@ -39,7 +39,14 @@ export function registerCharts(): void {
   Chart.defaults.font.size = 11;
   Chart.defaults.color = 'rgba(228, 228, 231, 0.72)';
   Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.04)';
-  Chart.defaults.animation = { duration: 420, easing: 'easeOutQuart' };
+  // Mutate the existing defaults instead of replacing the object — Chart.js
+  // walks internal `_fallback` fields on this scope to resolve per-property
+  // animation configs (e.g. doughnut's `numbers`). Reassigning the whole
+  // object strips those, which causes `Animator.tick` to crash with
+  // "this._fn is not a function" when an animation can't resolve its easing.
+  const animationDefaults = Chart.defaults.animation as { duration: number; easing: string };
+  animationDefaults.duration = 420;
+  animationDefaults.easing = 'easeOutQuart';
   Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(9, 9, 11, 0.96)';
   Chart.defaults.plugins.tooltip.borderColor = 'rgba(255, 255, 255, 0.08)';
   Chart.defaults.plugins.tooltip.borderWidth = 1;

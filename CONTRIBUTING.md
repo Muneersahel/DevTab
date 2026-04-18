@@ -66,11 +66,12 @@ Run these locally before opening a PR:
 
 ```bash
 pnpm typecheck
-pnpm test -- --run
+pnpm test:ci
+pnpm lint
 ```
 
-The pre-commit hook runs `lint-staged` + `typecheck` automatically on every
-commit.
+The pre-commit hook runs `lint-staged`, `pnpm typecheck`, and `pnpm test:ci`
+on every commit.
 
 ## Pull Requests
 
@@ -79,6 +80,14 @@ commit.
 - Link any related issue.
 - Include screenshots or a short clip for UI changes.
 - Keep PRs scoped — unrelated refactors belong in separate PRs.
+
+## Publishing a build
+
+When cutting a release or sharing an unpacked build:
+
+1. Bump `version` in `package.json` and `public/manifest.json` together.
+2. Run `pnpm build` and load `dist/devtab` in Chrome as an unpacked extension.
+3. Smoke-test settings, refresh, and the dashboard with a real WakaTime credential.
 
 ## Reporting Issues
 

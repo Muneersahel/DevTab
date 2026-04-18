@@ -61,10 +61,22 @@ pnpm typecheck
 Runs Angular's compiler type check.
 
 ```bash
-pnpm test -- --watch=false
+pnpm test:ci
 ```
 
-Runs the Vitest suite once.
+Runs the unit test suite once (Vitest via `ng test`, no watch).
+
+```bash
+pnpm test
+```
+
+Runs tests in watch mode when your terminal is interactive (best for local iteration).
+
+```bash
+pnpm lint
+```
+
+Runs ESLint on the workspace.
 
 ```bash
 pnpm start
@@ -124,8 +136,8 @@ Contributions are welcome — bug fixes, new widgets, polish, docs. See
 conventions, and PR checklist.
 
 The repo ships with a Husky pre-commit hook that runs Prettier on staged
-files and `pnpm typecheck`, so most formatting and type issues get caught
-before the commit lands.
+files, `pnpm typecheck`, and `pnpm test:ci`, so most formatting, type, and
+test regressions get caught before the commit lands.
 
 This project uses [pnpm](https://pnpm.io/) as its package manager.
 

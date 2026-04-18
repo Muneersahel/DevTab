@@ -73,19 +73,16 @@ export interface BestDay {
   total_seconds: number;
 }
 
-export interface Category extends TimedUsage {}
-
-export interface Dependency extends TimedUsage {}
-
-export interface Editor extends TimedUsage {}
-
-export interface Language extends TimedUsage {}
+export type Category = TimedUsage;
+export type Dependency = TimedUsage;
+export type Editor = TimedUsage;
+export type Language = TimedUsage;
 
 export interface Machine extends TimedUsage {
   machine_name_id: string;
 }
 
-export interface OperatingSystem extends TimedUsage {}
+export type OperatingSystem = TimedUsage;
 
 export interface Project extends TimedUsage {
   ai_additions: number;

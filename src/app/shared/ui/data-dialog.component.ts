@@ -29,45 +29,47 @@ import { UsageListComponent } from './usage-list.component';
       (close)="dismissed.emit()"
       (click)="onBackdropClick($event)"
     >
-      <div class="relative flex max-h-[80vh] flex-col">
-        <header class="flex items-start justify-between gap-4 border-b border-white/6 px-6 py-5">
-          <div class="min-w-0">
-            <p class="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-              {{ eyebrow() }}
-            </p>
-            <h2 class="mt-1 truncate text-base font-semibold text-zinc-50">{{ title() }}</h2>
-            <p class="mt-1 text-[12px] text-zinc-500">Showing all {{ items().length }} entries</p>
-          </div>
-          <button
-            type="button"
-            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/4 text-zinc-300 transition hover:border-white/20 hover:bg-white/8 hover:text-white"
-            (click)="close()"
-            aria-label="Close dialog"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
+      <div class="relative min-w-0 max-h-[80vh]">
+        <div class="relative z-10 flex flex-col">
+          <header class="flex items-start justify-between gap-4 border-b border-white/6 px-6 py-5">
+            <div class="min-w-0">
+              <p class="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+                {{ eyebrow() }}
+              </p>
+              <h2 class="mt-1 truncate text-base font-semibold text-zinc-50">{{ title() }}</h2>
+              <p class="mt-1 text-[12px] text-zinc-500">Showing all {{ items().length }} entries</p>
+            </div>
+            <button
+              type="button"
+              class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/4 text-zinc-300 transition hover:border-white/20 hover:bg-white/8 hover:text-white"
+              (click)="close()"
+              aria-label="Close dialog"
             >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-          </button>
-        </header>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </header>
 
-        <div class="overflow-y-auto px-6 py-5">
-          <dt-usage-list
-            [items]="items()"
-            [showSwatch]="showSwatch()"
-            [accent]="accent()"
-            emptyMessage="No data to show."
-          />
+          <div class="overflow-y-auto px-6 py-5">
+            <dt-usage-list
+              [items]="items()"
+              [showSwatch]="showSwatch()"
+              [accent]="accent()"
+              emptyMessage="No data to show."
+            />
+          </div>
         </div>
       </div>
     </dialog>

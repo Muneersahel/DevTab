@@ -182,16 +182,16 @@ export function createSummariesResponse(): WakaTimeSummariesResponse {
 }
 
 interface DayBreakdown {
-  languages?: Array<{ name: string; total_seconds: number; percent: number; text: string }>;
-  projects?: Array<{ name: string; total_seconds: number; percent: number; text: string }>;
-  categories?: Array<{ name: string; total_seconds: number; percent: number; text: string }>;
-  editors?: Array<{ name: string; total_seconds: number; percent: number; text: string }>;
-  operating_systems?: Array<{
+  languages?: { name: string; total_seconds: number; percent: number; text: string }[];
+  projects?: { name: string; total_seconds: number; percent: number; text: string }[];
+  categories?: { name: string; total_seconds: number; percent: number; text: string }[];
+  editors?: { name: string; total_seconds: number; percent: number; text: string }[];
+  operating_systems?: {
     name: string;
     total_seconds: number;
     percent: number;
     text: string;
-  }>;
+  }[];
 }
 
 function summaryDay(

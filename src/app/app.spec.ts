@@ -23,6 +23,7 @@ describe('App', () => {
 function fakeStore(): Partial<DashboardStoreService> {
   return {
     state: signal({ kind: 'missing_auth' }),
+    fetching: signal(false),
     credential: signal(null),
     initialize: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn().mockResolvedValue(undefined),

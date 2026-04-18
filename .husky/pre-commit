@@ -4,7 +4,5 @@ pnpm exec lint-staged
 # Full-project type check — cheap and catches most regressions.
 pnpm typecheck
 
-# NOTE: `pnpm test` is intentionally omitted until the pre-existing
-# TestBed.initTestEnvironment() issue in the spec setup is fixed. Re-enable
-# once the suite passes locally by adding:
-#   pnpm test -- --run
+# Unit tests (single run; watch mode is for local iteration only).
+pnpm test:ci

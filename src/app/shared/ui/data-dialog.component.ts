@@ -27,9 +27,14 @@ import { UsageListComponent } from './usage-list.component';
       #dialog
       class="dt-dialog m-auto w-full max-w-lg rounded-2xl border border-white/8 bg-zinc-950/95 p-0 text-zinc-100 shadow-[0_30px_120px_-30px_rgba(16,185,129,0.35)] backdrop:bg-black/70 backdrop:backdrop-blur-sm"
       (close)="dismissed.emit()"
-      (click)="onBackdropClick($event)"
     >
       <div class="relative min-w-0 max-h-[80vh]">
+        <button
+          type="button"
+          class="absolute inset-0 z-0 m-0 cursor-default border-0 bg-transparent p-0"
+          aria-label="Dismiss dialog"
+          (click)="close()"
+        ></button>
         <div class="relative z-10 flex flex-col">
           <header class="flex items-start justify-between gap-4 border-b border-white/6 px-6 py-5">
             <div class="min-w-0">
@@ -147,15 +152,6 @@ export class DataDialogComponent {
 
   protected close(): void {
     this.dialogRef()?.nativeElement.close();
-  }
-
-  protected onBackdropClick(event: MouseEvent): void {
-    // The dialog element itself receives clicks on its backdrop because the
-    // backdrop is a pseudo-element. When the click target is the dialog
-    // (not a child), it means the user clicked outside the inner card.
-    if (event.target === this.dialogRef()?.nativeElement) {
-      this.close();
-    }
   }
 
   /**

@@ -5,6 +5,9 @@ export interface WakaTimeStatsResponse {
 export interface WakaTimeStatsData {
   ai_additions: number;
   ai_deletions: number;
+  ai_input_tokens?: number;
+  ai_output_tokens?: number;
+  ai_prompt_length?: number;
   best_day: BestDay;
   categories: Category[];
   created_at: string;
@@ -87,6 +90,9 @@ export interface OperatingSystem extends TimedUsage {}
 export interface Project extends TimedUsage {
   ai_additions: number;
   ai_deletions: number;
+  ai_input_tokens?: number;
+  ai_output_tokens?: number;
+  ai_prompt_length?: number;
   human_additions: number;
   human_deletions: number;
 }

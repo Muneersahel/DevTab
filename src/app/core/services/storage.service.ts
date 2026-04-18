@@ -2,15 +2,17 @@ import { Injectable } from '@angular/core';
 import { StoredWakaTimeCredential, WakaTimeCredentialInput } from '../models/credential.model';
 import {
   ActivityDay,
+  AiVsHumanStats,
   DashboardStatus,
   DashboardViewModel,
   UsageItem,
+  VisibilityFlags,
 } from '../models/dashboard.model';
 import { BestDay } from '../models/wakatime-stats.model';
 
 const CREDENTIAL_KEY = 'devtab.wakatimeCredential';
 const DASHBOARD_CACHE_KEY = 'devtab.dashboardCache';
-const DASHBOARD_CACHE_VERSION = 1;
+const DASHBOARD_CACHE_VERSION = 2;
 
 interface CachedDashboardEnvelope {
   version: number;
@@ -215,8 +217,19 @@ function deserializeDashboard(value: Record<string, unknown>): DashboardViewMode
   const categories = parseUsageItems(value['categories']);
   const editors = parseUsageItems(value['editors']);
   const operatingSystems = parseUsageItems(value['operatingSystems']);
+  const machines = parseUsageItems(value['machines']);
+  // Older cache entries may not include the *All companions; fall back to
+  // the truncated previews so we degrade gracefully without re-fetching.
+  const languagesAll = parseUsageItems(value['languagesAll']);
+  const projectsAll = parseUsageItems(value['projectsAll']);
+  const categoriesAll = parseUsageItems(value['categoriesAll']);
+  const editorsAll = parseUsageItems(value['editorsAll']);
+  const operatingSystemsAll = parseUsageItems(value['operatingSystemsAll']);
+  const machinesAll = parseUsageItems(value['machinesAll']);
   const activity = parseActivity(value['activity']);
   const status = parseStatus(value['status']);
+  const visibility = parseVisibility(value['visibility']);
+  const aiVsHuman = parseAiVsHuman(value['aiVsHuman']);
 
   if (
     typeof value['totalTime'] !== 'string' ||
@@ -231,20 +244,33 @@ function deserializeDashboard(value: Record<string, unknown>): DashboardViewMode
   const lastUpdated =
     typeof value['lastUpdated'] === 'string' ? new Date(value['lastUpdated']) : null;
 
+  const totalTimeIncludingOther =
+    typeof value['totalTimeIncludingOther'] === 'string' ? value['totalTimeIncludingOther'] : null;
+
   return {
     totalTime: value['totalTime'],
+    totalTimeIncludingOther,
     dailyAverage: value['dailyAverage'],
     rangeLabel: value['rangeLabel'],
     bestDay: parseBestDay(value['bestDay']),
     topLanguage: parseUsageItem(value['topLanguage']),
     topProject: parseUsageItem(value['topProject']),
     languages,
+    languagesAll: languagesAll.length ? languagesAll : languages,
     projects,
+    projectsAll: projectsAll.length ? projectsAll : projects,
     categories,
+    categoriesAll: categoriesAll.length ? categoriesAll : categories,
     editors,
+    editorsAll: editorsAll.length ? editorsAll : editors,
     operatingSystems,
+    operatingSystemsAll: operatingSystemsAll.length ? operatingSystemsAll : operatingSystems,
+    machines,
+    machinesAll: machinesAll.length ? machinesAll : machines,
+    aiVsHuman,
     activity,
     activityUnavailable: value['activityUnavailable'],
+    visibility,
     lastUpdated: lastUpdated && !Number.isNaN(lastUpdated.getTime()) ? lastUpdated : null,
     status,
   };
@@ -343,6 +369,60 @@ function parseBestDay(value: unknown): BestDay | null {
       date: value['date'],
       text: value['text'],
       total_seconds: value['total_seconds'],
+    };
+  }
+
+  return null;
+}
+
+function parseVisibility(value: unknown): VisibilityFlags {
+  if (!isRecord(value)) {
+    return {
+      languages: true,
+      editors: true,
+      operatingSystems: true,
+      categories: true,
+      codingActivity: true,
+    };
+  }
+
+  return {
+    languages: readFlag(value['languages']),
+    editors: readFlag(value['editors']),
+    operatingSystems: readFlag(value['operatingSystems']),
+    categories: readFlag(value['categories']),
+    codingActivity: readFlag(value['codingActivity']),
+  };
+}
+
+function readFlag(value: unknown): boolean {
+  return typeof value === 'boolean' ? value : true;
+}
+
+function parseAiVsHuman(value: unknown): AiVsHumanStats | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  if (
+    typeof value['aiAdditions'] === 'number' &&
+    typeof value['aiDeletions'] === 'number' &&
+    typeof value['humanAdditions'] === 'number' &&
+    typeof value['humanDeletions'] === 'number' &&
+    typeof value['aiInputTokens'] === 'number' &&
+    typeof value['aiOutputTokens'] === 'number' &&
+    typeof value['aiSharePercent'] === 'number' &&
+    typeof value['hasData'] === 'boolean'
+  ) {
+    return {
+      aiAdditions: value['aiAdditions'],
+      aiDeletions: value['aiDeletions'],
+      humanAdditions: value['humanAdditions'],
+      humanDeletions: value['humanDeletions'],
+      aiInputTokens: value['aiInputTokens'],
+      aiOutputTokens: value['aiOutputTokens'],
+      aiSharePercent: value['aiSharePercent'],
+      hasData: value['hasData'],
     };
   }
 

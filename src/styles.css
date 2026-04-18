@@ -70,3 +70,9 @@ select:focus-visible {
     opacity: 0.35;
   }
 }
+
+@layer base {
+  button {
+    @apply cursor-pointer;
+  }
+}

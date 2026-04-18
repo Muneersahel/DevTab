@@ -8,9 +8,10 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { DashboardState, DashboardViewModel } from '../../core/models/dashboard.model';
+import { DashboardState, DashboardViewModel, UsageItem } from '../../core/models/dashboard.model';
 import { ActivityChartComponent } from '../../shared/ui/activity-chart.component';
 import { CHART_PALETTE } from '../../shared/ui/chart-registry';
+import { DataDialogComponent } from '../../shared/ui/data-dialog.component';
 import { LanguageDonutComponent } from '../../shared/ui/language-donut.component';
 import { MetricCardComponent } from '../../shared/ui/metric-card.component';
 import { UsageListComponent } from '../../shared/ui/usage-list.component';
@@ -26,6 +27,7 @@ import { DashboardSkeletonComponent } from './components/dashboard-skeleton.comp
     ActivityChartComponent,
     LanguageDonutComponent,
     UsageListComponent,
+    DataDialogComponent,
     DashboardSkeletonComponent,
   ],
   templateUrl: './dashboard.page.html',
@@ -38,6 +40,62 @@ export class DashboardPageComponent {
   readonly settingsRequested = output<void>();
 
   protected readonly debugOpen = signal(false);
+
+  protected readonly activeDialog = signal<DialogKey | null>(null);
+
+  protected readonly activeDialogConfig = computed(() => {
+    const key = this.activeDialog();
+    return key ? this.dialogConfigs[key] : null;
+  });
+
+  protected readonly activeDialogItems = computed((): UsageItem[] => {
+    const key = this.activeDialog();
+    const data = this.dashboard();
+    if (!key || !data) return [];
+    return this.dialogItemsFor(key, data);
+  });
+
+  protected readonly dialogConfigs: Record<
+    DialogKey,
+    { title: string; eyebrow: string; accent: string; showSwatch: boolean }
+  > = {
+    languages: {
+      title: 'All languages',
+      eyebrow: 'Language breakdown',
+      accent: '#34d399',
+      showSwatch: true,
+    },
+    projects: {
+      title: 'All projects',
+      eyebrow: 'Project breakdown',
+      accent: '#34d399',
+      showSwatch: false,
+    },
+    editors: {
+      title: 'All editors',
+      eyebrow: 'Editor usage',
+      accent: '#60a5fa',
+      showSwatch: false,
+    },
+    operatingSystems: {
+      title: 'All operating systems',
+      eyebrow: 'OS usage',
+      accent: '#c084fc',
+      showSwatch: false,
+    },
+    categories: {
+      title: 'All categories',
+      eyebrow: 'Activity categories',
+      accent: '#34d399',
+      showSwatch: false,
+    },
+    machines: {
+      title: 'All machines',
+      eyebrow: 'Machine usage',
+      accent: '#fbbf24',
+      showSwatch: false,
+    },
+  };
 
   protected readonly dashboard = computed((): DashboardViewModel | null => {
     const state = this.state();
@@ -103,4 +161,37 @@ export class DashboardPageComponent {
   protected legendColor(index: number): string {
     return CHART_PALETTE[index % CHART_PALETTE.length];
   }
+
+  protected openDialog(key: DialogKey): void {
+    this.activeDialog.set(key);
+  }
+
+  protected closeDialog(): void {
+    this.activeDialog.set(null);
+  }
+
+  protected dialogItemsFor(key: DialogKey, data: DashboardViewModel): UsageItem[] {
+    switch (key) {
+      case 'languages':
+        return data.languagesAll;
+      case 'projects':
+        return data.projectsAll;
+      case 'editors':
+        return data.editorsAll;
+      case 'operatingSystems':
+        return data.operatingSystemsAll;
+      case 'categories':
+        return data.categoriesAll;
+      case 'machines':
+        return data.machinesAll;
+    }
+  }
 }
+
+type DialogKey =
+  | 'languages'
+  | 'projects'
+  | 'editors'
+  | 'operatingSystems'
+  | 'categories'
+  | 'machines';

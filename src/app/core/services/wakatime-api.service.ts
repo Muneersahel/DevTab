@@ -4,6 +4,7 @@ import { WakaTimeErrorResponse, WakaTimeStatsResponse } from '../models/wakatime
 import { WakaTimeSummariesResponse } from '../models/wakatime-summaries.model';
 
 const API_BASE = 'https://api.wakatime.com/api/v1';
+const SUMMARIES_DAY_SPAN = 7;
 
 export type WakaTimeApiErrorCode = 'invalid_auth' | 'network' | 'api_down' | 'malformed';
 
@@ -18,15 +19,68 @@ export class WakaTimeApiError extends Error {
   }
 }
 
+/**
+ * Optional overrides for the WakaTime summaries endpoint. Defaults align with
+ * the dashboard: a rolling last-7-days window in the user's local timezone so
+ * the per-day buckets line up with what the activity chart renders.
+ *
+ * See https://wakatime.com/developers#summaries
+ */
+export interface WakaTimeSummariesOptions {
+  /** YYYY-MM-DD start date (inclusive). Defaults to 6 days before `end`. */
+  start?: string;
+  /** YYYY-MM-DD end date (inclusive). Defaults to today in `timezone`. */
+  end?: string;
+  /** IANA timezone name. Defaults to the browser's resolved timezone. */
+  timezone?: string;
+  /** Filter to a single project. */
+  project?: string;
+  /** Comma-separated branch filter; only meaningful with `project`. */
+  branches?: string;
+  /** Override the user's keystroke timeout (minutes). */
+  timeout?: number;
+  /** Restrict to writes-only heartbeats. */
+  writes_only?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class WakaTimeApiService {
   fetchStats(credential: StoredWakaTimeCredential): Promise<WakaTimeStatsResponse> {
     return this.request('/users/current/stats/last_7_days', credential, isStatsResponse);
   }
 
-  fetchSummaries(credential: StoredWakaTimeCredential): Promise<WakaTimeSummariesResponse> {
+  fetchSummaries(
+    credential: StoredWakaTimeCredential,
+    options: WakaTimeSummariesOptions = {},
+  ): Promise<WakaTimeSummariesResponse> {
+    const timezone = options.timezone ?? resolveBrowserTimezone();
+    const end = options.end ?? todayInTimezone(timezone);
+    const start = options.start ?? shiftIsoDate(end, -(SUMMARIES_DAY_SPAN - 1));
+
+    const params = new URLSearchParams({ start, end });
+
+    if (timezone) {
+      params.set('timezone', timezone);
+    }
+
+    if (options.project !== undefined) {
+      params.set('project', options.project);
+    }
+
+    if (options.branches !== undefined) {
+      params.set('branches', options.branches);
+    }
+
+    if (options.timeout !== undefined) {
+      params.set('timeout', String(options.timeout));
+    }
+
+    if (options.writes_only !== undefined) {
+      params.set('writes_only', String(options.writes_only));
+    }
+
     return this.request(
-      '/users/current/summaries?range=Last%207%20Days',
+      `/users/current/summaries?${params.toString()}`,
       credential,
       isSummariesResponse,
     );
@@ -132,7 +186,13 @@ function isStatsResponse(value: unknown): value is WakaTimeStatsResponse {
 }
 
 function isSummariesResponse(value: unknown): value is WakaTimeSummariesResponse {
-  return isRecord(value) && Array.isArray(value['data']);
+  if (!isRecord(value) || !Array.isArray(value['data'])) {
+    return false;
+  }
+
+  return value['data'].every(
+    (day) => isRecord(day) && isRecord(day['range']) && typeof day['range']['date'] === 'string',
+  );
 }
 
 function isErrorResponse(value: unknown): value is Required<WakaTimeErrorResponse> {
@@ -149,4 +209,31 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function debugMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function resolveBrowserTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch {
+    return 'UTC';
+  }
+}
+
+function todayInTimezone(timezone: string): string {
+  // `en-CA` formats as `YYYY-MM-DD`, which is exactly what the WakaTime
+  // summaries endpoint expects for `start` / `end` dates.
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).format(new Date());
+  } catch {
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
+function shiftIsoDate(isoDate: string, days: number): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  // Build the date in UTC and shift in UTC to avoid DST surprises — we only
+  // care about the calendar date, not the wall-clock instant.
+  const reference = new Date(Date.UTC(year, month - 1, day));
+  reference.setUTCDate(reference.getUTCDate() + days);
+  return reference.toISOString().slice(0, 10);
 }

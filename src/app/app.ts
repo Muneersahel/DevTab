@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { WakaTimeCredentialInput } from './core/models/credential.model';
+import { DEFAULT_UI_PREFERENCES, type DevTabUiPreferences } from './core/models/ui-prefs.model';
 import { DashboardStoreService } from './core/services/dashboard-store.service';
+import { StorageService } from './core/services/storage.service';
 import { DashboardPageComponent } from './features/dashboard/dashboard.page';
 import { SettingsPanelComponent } from './features/settings/settings-panel.component';
 
@@ -18,9 +20,11 @@ import { SettingsPanelComponent } from './features/settings/settings-panel.compo
     @if (settingsOpen()) {
       <dt-settings-panel
         [credential]="store.credential()"
+        [uiPreferences]="uiPrefs()"
         (closed)="settingsOpen.set(false)"
         (saveRequested)="saveCredential($event)"
         (clearRequested)="clearCredential()"
+        (preferencesSaved)="saveUiPreferences($event)"
       />
     }
   `,
@@ -29,10 +33,13 @@ import { SettingsPanelComponent } from './features/settings/settings-panel.compo
 })
 export class App implements OnInit {
   protected readonly store = inject(DashboardStoreService);
+  protected readonly storage = inject(StorageService);
   protected readonly settingsOpen = signal(false);
+  protected readonly uiPrefs = signal<DevTabUiPreferences>(DEFAULT_UI_PREFERENCES);
 
   ngOnInit(): void {
     void this.store.initialize();
+    void this.storage.getUiPreferences().then((p) => this.uiPrefs.set(p));
   }
 
   protected refresh(): void {
@@ -48,6 +55,12 @@ export class App implements OnInit {
   protected clearCredential(): void {
     void this.store.clearCredential().then(() => {
       this.settingsOpen.set(false);
+    });
+  }
+
+  protected saveUiPreferences(prefs: DevTabUiPreferences): void {
+    void this.storage.saveUiPreferences(prefs).then(() => {
+      this.uiPrefs.set(prefs);
     });
   }
 }

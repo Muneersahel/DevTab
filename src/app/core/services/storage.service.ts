@@ -8,10 +8,15 @@ import {
   UsageItem,
   VisibilityFlags,
 } from '../models/dashboard.model';
+import type { KanbanColumnId, Task, TaskKind, TaskStatus } from '../models/task.model';
+import { DEFAULT_UI_PREFERENCES, type DevTabUiPreferences } from '../models/ui-prefs.model';
 import { BestDay } from '../models/wakatime-stats.model';
 
 const CREDENTIAL_KEY = 'devtab.wakatimeCredential';
 const DASHBOARD_CACHE_KEY = 'devtab.dashboardCache';
+const PRODUCTIVITY_KEY = 'devtab.productivity';
+const UI_PREFS_KEY = 'devtab.uiPreferences';
+const PRODUCTIVITY_ENVELOPE_VERSION = 1;
 const DASHBOARD_CACHE_VERSION = 3;
 // v2 persisted a single `lastUpdated` timestamp. We still read those entries
 // so a user upgrading DevTab doesn't see an empty splash.
@@ -124,6 +129,62 @@ export class StorageService {
     }
 
     this.localStorage()?.removeItem(DASHBOARD_CACHE_KEY);
+  }
+
+  async getUiPreferences(): Promise<DevTabUiPreferences> {
+    const storage = this.chromeStorage();
+    let raw: unknown;
+
+    if (storage) {
+      const result = await storage.get(UI_PREFS_KEY);
+      raw = result[UI_PREFS_KEY];
+    } else {
+      const item = this.localStorage()?.getItem(UI_PREFS_KEY);
+      raw = item ? safeParse(item) : null;
+    }
+
+    return parseUiPreferences(raw);
+  }
+
+  async saveUiPreferences(prefs: DevTabUiPreferences): Promise<void> {
+    const storage = this.chromeStorage();
+
+    if (storage) {
+      await storage.set({ [UI_PREFS_KEY]: prefs });
+      return;
+    }
+
+    this.localStorage()?.setItem(UI_PREFS_KEY, JSON.stringify(prefs));
+  }
+
+  async getProductivityTasks(): Promise<Task[]> {
+    const storage = this.chromeStorage();
+    let raw: unknown;
+
+    if (storage) {
+      const result = await storage.get(PRODUCTIVITY_KEY);
+      raw = result[PRODUCTIVITY_KEY];
+    } else {
+      const item = this.localStorage()?.getItem(PRODUCTIVITY_KEY);
+      raw = item ? safeParse(item) : null;
+    }
+
+    return parseProductivityTasks(raw);
+  }
+
+  async saveProductivityTasks(tasks: Task[]): Promise<void> {
+    const envelope = {
+      version: PRODUCTIVITY_ENVELOPE_VERSION,
+      tasks,
+    };
+    const storage = this.chromeStorage();
+
+    if (storage) {
+      await storage.set({ [PRODUCTIVITY_KEY]: envelope });
+      return;
+    }
+
+    this.localStorage()?.setItem(PRODUCTIVITY_KEY, JSON.stringify(envelope));
   }
 
   private chromeStorage(): ChromeStorageArea | null {
@@ -454,4 +515,113 @@ function parseAiVsHuman(value: unknown): AiVsHumanStats | null {
   }
 
   return null;
+}
+
+function parseUiPreferences(value: unknown): DevTabUiPreferences {
+  const merged: DevTabUiPreferences = { ...DEFAULT_UI_PREFERENCES };
+  if (!isRecord(value)) {
+    return merged;
+  }
+
+  if (typeof value['codingDetailsExpanded'] === 'boolean') {
+    merged.codingDetailsExpanded = value['codingDetailsExpanded'];
+  }
+
+  if (typeof value['searchUrlTemplate'] === 'string') {
+    const t = value['searchUrlTemplate'].trim();
+    if (t.includes('%s')) {
+      merged.searchUrlTemplate = t;
+    }
+  }
+
+  return merged;
+}
+
+function parseProductivityTasks(value: unknown): Task[] {
+  const parsed = typeof value === 'string' ? safeParse(value) : value;
+
+  if (!isRecord(parsed)) {
+    return [];
+  }
+
+  if (
+    typeof parsed['version'] !== 'number' ||
+    parsed['version'] !== PRODUCTIVITY_ENVELOPE_VERSION
+  ) {
+    return [];
+  }
+
+  const rawTasks = parsed['tasks'];
+  if (!Array.isArray(rawTasks)) {
+    return [];
+  }
+
+  return rawTasks
+    .map((entry) => parseStoredTask(entry))
+    .filter((task): task is Task => task !== null);
+}
+
+function parseStoredTask(value: unknown): Task | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const id = value['id'];
+  const title = value['title'];
+  const kind = value['kind'];
+  const status = value['status'];
+  const createdAt = value['createdAt'];
+  const updatedAt = value['updatedAt'];
+  const sortOrder = value['sortOrder'];
+
+  if (
+    typeof id !== 'string' ||
+    typeof title !== 'string' ||
+    !title.trim() ||
+    (kind !== 'quick' && kind !== 'project') ||
+    (status !== 'todo' && status !== 'done') ||
+    typeof createdAt !== 'string' ||
+    typeof updatedAt !== 'string' ||
+    typeof sortOrder !== 'number' ||
+    !Number.isFinite(sortOrder)
+  ) {
+    return null;
+  }
+
+  const dueRaw = value['dueAt'];
+  const dueAt =
+    dueRaw === null || dueRaw === undefined
+      ? null
+      : typeof dueRaw === 'string' && dueRaw.trim()
+        ? dueRaw
+        : null;
+
+  let columnId: KanbanColumnId | null = null;
+  const col = value['columnId'];
+  if (col === 'backlog' || col === 'doing' || col === 'done') {
+    columnId = col;
+  }
+
+  if (kind === 'quick') {
+    columnId = null;
+  } else if (kind === 'project' && !columnId) {
+    columnId = 'backlog';
+  }
+
+  let nextStatus: TaskStatus = status;
+  if (kind === 'project' && columnId) {
+    nextStatus = columnId === 'done' ? 'done' : 'todo';
+  }
+
+  return {
+    id,
+    kind: kind as TaskKind,
+    title: title.trim(),
+    status: nextStatus,
+    dueAt,
+    createdAt,
+    updatedAt,
+    sortOrder,
+    columnId: kind === 'project' ? columnId : null,
+  };
 }

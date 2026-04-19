@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
+import { DEFAULT_UI_PREFERENCES } from '../../core/models/ui-prefs.model';
 import { SettingsPanelComponent } from './settings-panel.component';
 
 describe('SettingsPanelComponent', () => {
@@ -8,6 +9,7 @@ describe('SettingsPanelComponent', () => {
       imports: [SettingsPanelComponent],
     }).compileComponents();
     const fixture = TestBed.createComponent(SettingsPanelComponent);
+    fixture.componentRef.setInput('uiPreferences', DEFAULT_UI_PREFERENCES);
     const save = vi.fn();
     fixture.componentInstance.saveRequested.subscribe(save);
     fixture.detectChanges();

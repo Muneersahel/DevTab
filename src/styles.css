@@ -1,16 +1,31 @@
 @import 'tailwindcss' important;
 
+/*
+ * Self-hosted fonts so the extension never reaches out to a CDN at new-tab
+ * time. Only the weights we actually use are pulled in to keep the bundle
+ * lean.
+ */
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+@import '@fontsource/ibm-plex-serif/500-italic.css';
+
 :root {
   color-scheme: dark;
-  font-family:
-    ui-sans-serif,
-    -apple-system,
-    BlinkMacSystemFont,
-    'SF Pro Text',
-    'Helvetica Neue',
-    sans-serif;
-  background: #0f0f0f;
-  color: #f5f5f5;
+  --font-sans:
+    'IBM Plex Sans', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-serif: 'IBM Plex Serif', ui-serif, Georgia, serif;
+  font-family: var(--font-sans);
+  font-feature-settings:
+    'ss01' on,
+    'cv11' on;
+  background: #09090b;
+  color: #f4f4f5;
 }
 
 * {
@@ -21,23 +36,44 @@ html,
 body {
   min-height: 100%;
   margin: 0;
-  background: #0f0f0f;
+  background: #09090b;
 }
 
 body {
   overflow-x: hidden;
+  font-family: var(--font-sans);
 }
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
+}
+
+.font-mono,
+.tabular-nums,
+pre,
+code,
+kbd {
+  font-family: var(--font-mono);
+  font-feature-settings:
+    'tnum' on,
+    'zero' on;
+}
+
+.font-serif-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 500;
 }
 
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
-  outline: 2px solid #00d4aa;
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 1px solid #34d399;
   outline-offset: 2px;
 }
 
@@ -62,6 +98,51 @@ select:focus-visible {
   }
 }
 
+/**
+ * Subtle horizontal scanline background used for the page header and
+ * section dividers. Evokes a technical/instrument-panel feel without the
+ * garish "dashboard" gloss.
+ */
+.dt-rule-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03) 0,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/**
+ * Side-drawer entry: slide from right and fade. Used by the tasks drawer
+ * and any other right-anchored sheet.
+ */
+.dt-drawer-enter {
+  animation: dt-drawer-enter 220ms cubic-bezier(0.32, 0.72, 0.2, 1) both;
+}
+@keyframes dt-drawer-enter {
+  from {
+    transform: translate3d(24px, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.dt-backdrop-enter {
+  animation: dt-backdrop-enter 180ms ease-out both;
+}
+@keyframes dt-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dt-progress-rail {
     animation: none;
@@ -69,10 +150,22 @@ select:focus-visible {
     width: 100%;
     opacity: 0.35;
   }
+  .dt-drawer-enter,
+  .dt-backdrop-enter {
+    animation: none;
+  }
 }
 
 @layer base {
   button {
     @apply cursor-pointer;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
   }
 }

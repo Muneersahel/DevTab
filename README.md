@@ -17,6 +17,7 @@ can be added without reshaping the app.
 
 - Overrides Chrome's new tab page.
 - Stores a WakaTime API key or bearer token locally in `chrome.storage.local`.
+- Quick tasks, a three-column project board (move tasks between columns in the Board tab), and in-tab quick search (`chrome.search` when available). The `search` permission runs queries in your **default search engine** only; DevTab does not send searches to its own servers. If `chrome.search` is missing, Settings provides a fallback URL template (must include `%s`).
 - Fetches WakaTime stats from `https://api.wakatime.com/api/v1/users/current/stats/last_7_days`.
 - Fetches WakaTime summaries for the 7-day activity widget.
 - Shows loading, missing-auth, invalid-auth, updating, and generic error states.

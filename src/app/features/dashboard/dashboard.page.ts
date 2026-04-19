@@ -1,20 +1,25 @@
-import { DatePipe, DecimalPipe, NgOptimizedImage } from '@angular/common';
+import { DatePipe, DecimalPipe, LowerCasePipe, NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
 import { DashboardState, DashboardViewModel, UsageItem } from '../../core/models/dashboard.model';
+import { BrowserSearchService } from '../../core/services/browser-search.service';
+import { StorageService } from '../../core/services/storage.service';
+import { TaskStoreService } from '../../core/services/task-store.service';
 import { ActivityChartComponent } from '../../shared/ui/activity-chart.component';
 import { CHART_PALETTE } from '../../shared/ui/chart-registry';
 import { DataDialogComponent } from '../../shared/ui/data-dialog.component';
 import { LanguageDonutComponent } from '../../shared/ui/language-donut.component';
 import { MetricCardComponent } from '../../shared/ui/metric-card.component';
 import { UsageListComponent } from '../../shared/ui/usage-list.component';
+import { QuickSearchDialogComponent } from '../productivity/quick-search-dialog.component';
+import { TasksDialogComponent } from '../productivity/tasks-dialog.component';
 import { DashboardSkeletonComponent } from './components/dashboard-skeleton.component';
 
 @Component({
@@ -22,6 +27,7 @@ import { DashboardSkeletonComponent } from './components/dashboard-skeleton.comp
   imports: [
     DatePipe,
     DecimalPipe,
+    LowerCasePipe,
     NgOptimizedImage,
     MetricCardComponent,
     ActivityChartComponent,
@@ -29,9 +35,14 @@ import { DashboardSkeletonComponent } from './components/dashboard-skeleton.comp
     UsageListComponent,
     DataDialogComponent,
     DashboardSkeletonComponent,
+    TasksDialogComponent,
+    QuickSearchDialogComponent,
   ],
   templateUrl: './dashboard.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown)': 'onDocumentKeydown($event)',
+  },
 })
 export class DashboardPageComponent {
   readonly state = input.required<DashboardState>();
@@ -39,7 +50,13 @@ export class DashboardPageComponent {
   readonly refreshRequested = output<void>();
   readonly settingsRequested = output<void>();
 
+  private readonly storage = inject(StorageService);
+  protected readonly store = inject(TaskStoreService);
+  private readonly browserSearch = inject(BrowserSearchService);
+
   protected readonly debugOpen = signal(false);
+  protected readonly searchOpen = signal(false);
+  protected readonly tasksOpen = signal(false);
 
   protected readonly activeDialog = signal<DialogKey | null>(null);
 
@@ -112,50 +129,11 @@ export class DashboardPageComponent {
     return state.kind === 'error' ? state.message : '';
   });
 
-  protected readonly isUpdating = computed(() => this.state().kind === 'updating');
   protected readonly isLoading = computed(() => this.state().kind === 'loading');
   protected readonly isSyncing = computed(() => this.fetching() || this.isLoading());
 
-  /**
-   * Flips to `true` for ~900ms whenever a fresh payload lands, to power a
-   * subtle "live" pulse on the status chip. Tracked via the data identity
-   * (`fetchedAt` timestamp) so a stable render doesn't re-trigger it.
-   */
-  protected readonly justRefreshed = signal(false);
-  private lastSignature: string | null = null;
-  private freshnessTimer: ReturnType<typeof setTimeout> | null = null;
-
   constructor() {
-    effect(() => {
-      const state = this.state();
-      if (state.kind !== 'ready' && state.kind !== 'updating') {
-        return;
-      }
-
-      const signature = `${state.kind}:${state.data.fetchedAt.toISOString()}:${
-        state.data.totalTime
-      }`;
-
-      if (signature === this.lastSignature) {
-        return;
-      }
-
-      const isFirstPaint = this.lastSignature === null;
-      this.lastSignature = signature;
-
-      if (isFirstPaint) {
-        return;
-      }
-
-      if (this.freshnessTimer) {
-        clearTimeout(this.freshnessTimer);
-      }
-      this.justRefreshed.set(true);
-      this.freshnessTimer = setTimeout(() => {
-        this.justRefreshed.set(false);
-        this.freshnessTimer = null;
-      }, 900);
-    });
+    void this.store.load();
   }
 
   protected legendColor(index: number): string {
@@ -168,6 +146,61 @@ export class DashboardPageComponent {
 
   protected closeDialog(): void {
     this.activeDialog.set(null);
+  }
+
+  protected async runSearch(query: string): Promise<void> {
+    const prefs = await this.storage.getUiPreferences();
+    this.browserSearch.runSearch(query, prefs.searchUrlTemplate);
+  }
+
+  /**
+   * Global keyboard shortcuts for dashboard-level surfaces:
+   *   - Escape closes whichever drawer/dialog is open
+   *   - Cmd/Ctrl+K toggles search
+   *   - "/" opens search (when not typing in a field)
+   *   - "t" toggles the tasks drawer (when not typing in a field)
+   */
+  protected onDocumentKeydown(ev: KeyboardEvent): void {
+    if (ev.defaultPrevented) return;
+
+    if (ev.key === 'Escape') {
+      if (this.searchOpen()) {
+        ev.preventDefault();
+        this.searchOpen.set(false);
+        return;
+      }
+      if (this.tasksOpen()) {
+        ev.preventDefault();
+        this.tasksOpen.set(false);
+        return;
+      }
+    }
+
+    const target = ev.target as HTMLElement | null;
+    const tag = target?.tagName;
+    const editable =
+      Boolean(target?.isContentEditable) ||
+      tag === 'INPUT' ||
+      tag === 'TEXTAREA' ||
+      tag === 'SELECT';
+
+    const meta = ev.metaKey || ev.ctrlKey;
+    if (meta && ev.key.toLowerCase() === 'k') {
+      ev.preventDefault();
+      this.searchOpen.update((open) => !open);
+      return;
+    }
+
+    if (ev.key === '/' && !editable) {
+      ev.preventDefault();
+      this.searchOpen.set(true);
+      return;
+    }
+
+    if (ev.key.toLowerCase() === 't' && !editable && !meta && !ev.altKey) {
+      ev.preventDefault();
+      this.tasksOpen.update((open) => !open);
+    }
   }
 
   protected dialogItemsFor(key: DialogKey, data: DashboardViewModel): UsageItem[] {

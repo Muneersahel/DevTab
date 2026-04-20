@@ -13,6 +13,7 @@ import { SettingsPanelComponent } from './features/settings/settings-panel.compo
     <dt-dashboard-page
       [state]="store.state()"
       [fetching]="store.fetching()"
+      [autoRefreshIntervalMs]="uiPrefs().autoRefreshIntervalMs"
       (refreshRequested)="refresh()"
       (settingsRequested)="settingsOpen.set(true)"
     />
@@ -39,7 +40,10 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     void this.store.initialize();
-    void this.storage.getUiPreferences().then((p) => this.uiPrefs.set(p));
+    void this.storage.getUiPreferences().then((p) => {
+      this.uiPrefs.set(p);
+      this.store.setAutoRefreshIntervalMs(p.autoRefreshIntervalMs);
+    });
   }
 
   protected refresh(): void {
@@ -61,6 +65,7 @@ export class App implements OnInit {
   protected saveUiPreferences(prefs: DevTabUiPreferences): void {
     void this.storage.saveUiPreferences(prefs).then(() => {
       this.uiPrefs.set(prefs);
+      this.store.setAutoRefreshIntervalMs(prefs.autoRefreshIntervalMs);
     });
   }
 }

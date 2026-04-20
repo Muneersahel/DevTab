@@ -5,7 +5,11 @@ import {
   WakaTimeCredentialInput,
   WakaTimeCredentialType,
 } from '../../core/models/credential.model';
-import { DEFAULT_UI_PREFERENCES, type DevTabUiPreferences } from '../../core/models/ui-prefs.model';
+import {
+  AUTO_REFRESH_INTERVAL_OPTIONS_MS,
+  DEFAULT_UI_PREFERENCES,
+  type DevTabUiPreferences,
+} from '../../core/models/ui-prefs.model';
 
 @Component({
   selector: 'dt-settings-panel',
@@ -97,6 +101,22 @@ import { DEFAULT_UI_PREFERENCES, type DevTabUiPreferences } from '../../core/mod
           [formGroup]="prefsForm"
           (ngSubmit)="savePrefs()"
         >
+          <h3 class="text-sm font-medium text-zinc-300">Preferences</h3>
+          <label class="block text-sm">
+            <span class="text-zinc-300">Auto-refresh interval</span>
+            <select
+              class="mt-2 w-full rounded-md border border-zinc-800 bg-neutral-950 px-3 py-2 text-zinc-100"
+              formControlName="autoRefreshIntervalMs"
+            >
+              @for (opt of refreshOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </label>
+          <p class="text-xs text-zinc-500">
+            Controls how often analytics refresh in the background.
+          </p>
+
           <h3 class="text-sm font-medium text-zinc-300">Quick search fallback</h3>
           <p class="text-sm text-zinc-500">
             Used when the browser does not expose <code class="text-zinc-400">chrome.search</code>.
@@ -147,11 +167,22 @@ export class SettingsPanelComponent {
   });
 
   protected readonly prefsForm = new FormGroup({
+    autoRefreshIntervalMs: new FormControl(DEFAULT_UI_PREFERENCES.autoRefreshIntervalMs, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     searchUrlTemplate: new FormControl(DEFAULT_UI_PREFERENCES.searchUrlTemplate, {
       nonNullable: true,
       validators: [Validators.required, Validators.pattern(/.*%s.*/)],
     }),
   });
+  protected readonly refreshOptions = [
+    { value: AUTO_REFRESH_INTERVAL_OPTIONS_MS[0], label: 'Off (manual only)' },
+    { value: AUTO_REFRESH_INTERVAL_OPTIONS_MS[1], label: 'Every 1 minute' },
+    { value: AUTO_REFRESH_INTERVAL_OPTIONS_MS[2], label: 'Every 2 minutes (recommended)' },
+    { value: AUTO_REFRESH_INTERVAL_OPTIONS_MS[3], label: 'Every 5 minutes' },
+    { value: AUTO_REFRESH_INTERVAL_OPTIONS_MS[4], label: 'Every 10 minutes' },
+  ] as const;
 
   constructor() {
     effect(() => {
@@ -162,6 +193,9 @@ export class SettingsPanelComponent {
 
     effect(() => {
       const prefs = this.uiPreferences();
+      this.prefsForm.controls.autoRefreshIntervalMs.setValue(prefs.autoRefreshIntervalMs, {
+        emitEvent: false,
+      });
       this.prefsForm.controls.searchUrlTemplate.setValue(prefs.searchUrlTemplate, {
         emitEvent: false,
       });
@@ -188,6 +222,7 @@ export class SettingsPanelComponent {
     const template = this.prefsForm.controls.searchUrlTemplate.value.trim();
     this.preferencesSaved.emit({
       ...this.uiPreferences(),
+      autoRefreshIntervalMs: this.prefsForm.controls.autoRefreshIntervalMs.value,
       searchUrlTemplate: template,
     });
   }

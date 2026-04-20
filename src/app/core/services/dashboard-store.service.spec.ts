@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { StoredWakaTimeCredential } from '../models/credential.model';
 import { createStatsResponse, createSummariesResponse } from '../testing/wakatime.fixtures';
 import { DashboardStoreService } from './dashboard-store.service';
@@ -13,6 +13,10 @@ const credential: StoredWakaTimeCredential = {
 };
 
 describe('DashboardStoreService', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('enters missing auth when no credential is saved', async () => {
     const store = createStore({ credential: null });
 
@@ -65,6 +69,73 @@ describe('DashboardStoreService', () => {
 
     expect(store.state().kind).toBe('updating');
   });
+
+  it('refreshes on an interval while credential exists', async () => {
+    vi.useFakeTimers();
+    const api = {
+      statsCalls: 0,
+      summariesCalls: 0,
+    };
+    const store = createStore({
+      credential,
+      onFetchStats: () => {
+        api.statsCalls += 1;
+      },
+      onFetchSummaries: () => {
+        api.summariesCalls += 1;
+      },
+    });
+
+    await store.initialize();
+    expect(api.statsCalls).toBe(1);
+    expect(api.summariesCalls).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(2 * 60 * 1000);
+    expect(api.statsCalls).toBe(2);
+    expect(api.summariesCalls).toBe(2);
+  });
+
+  it('uses configured auto-refresh interval', async () => {
+    vi.useFakeTimers();
+    const api = { statsCalls: 0 };
+    const store = createStore({
+      credential,
+      onFetchStats: () => {
+        api.statsCalls += 1;
+      },
+    });
+    store.setAutoRefreshIntervalMs(5 * 60 * 1000);
+
+    await store.initialize();
+    expect(api.statsCalls).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(2 * 60 * 1000);
+    expect(api.statsCalls).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(3 * 60 * 1000);
+    expect(api.statsCalls).toBe(2);
+  });
+
+  it('stops interval refresh after credential is cleared', async () => {
+    vi.useFakeTimers();
+    const api = {
+      statsCalls: 0,
+    };
+    const store = createStore({
+      credential,
+      onFetchStats: () => {
+        api.statsCalls += 1;
+      },
+    });
+
+    await store.initialize();
+    expect(api.statsCalls).toBe(1);
+
+    await store.clearCredential();
+    await vi.advanceTimersByTimeAsync(2 * 60 * 1000);
+
+    expect(api.statsCalls).toBe(1);
+  });
 });
 
 function createStore(config: {
@@ -72,6 +143,8 @@ function createStore(config: {
   stats?: ReturnType<typeof createStatsResponse>;
   summariesError?: unknown;
   statsError?: unknown;
+  onFetchStats?: () => void;
+  onFetchSummaries?: () => void;
 }) {
   const storage = {
     getCredential: () => Promise.resolve(config.credential),
@@ -82,14 +155,18 @@ function createStore(config: {
     clearCachedDashboard: () => Promise.resolve(),
   };
   const api = {
-    fetchStats: () =>
-      config.statsError
+    fetchStats: () => {
+      config.onFetchStats?.();
+      return config.statsError
         ? Promise.reject(config.statsError)
-        : Promise.resolve(config.stats ?? createStatsResponse()),
-    fetchSummaries: () =>
-      config.summariesError
+        : Promise.resolve(config.stats ?? createStatsResponse());
+    },
+    fetchSummaries: () => {
+      config.onFetchSummaries?.();
+      return config.summariesError
         ? Promise.reject(config.summariesError)
-        : Promise.resolve(createSummariesResponse()),
+        : Promise.resolve(createSummariesResponse());
+    },
   };
 
   TestBed.configureTestingModule({

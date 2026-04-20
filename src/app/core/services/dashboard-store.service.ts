@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { StoredWakaTimeCredential, WakaTimeCredentialInput } from '../models/credential.model';
 import { DashboardState, DashboardViewModel } from '../models/dashboard.model';
+import { DEFAULT_AUTO_REFRESH_INTERVAL_MS } from '../models/ui-prefs.model';
 import { normalizeDashboard, shouldShowUpdating } from '../utils/wakatime-normalizer';
 import { StorageService } from './storage.service';
 import { WakaTimeApiError, WakaTimeApiService } from './wakatime-api.service';
@@ -9,6 +10,8 @@ import { WakaTimeApiError, WakaTimeApiService } from './wakatime-api.service';
 export class DashboardStoreService {
   private readonly storage = inject(StorageService);
   private readonly api = inject(WakaTimeApiService);
+  private refreshTimer: ReturnType<typeof setInterval> | null = null;
+  private autoRefreshIntervalMs = DEFAULT_AUTO_REFRESH_INTERVAL_MS;
 
   readonly credential = signal<StoredWakaTimeCredential | null>(null);
   readonly state = signal<DashboardState>({ kind: 'loading' });
@@ -35,6 +38,7 @@ export class DashboardStoreService {
         void this.storage.clearCachedDashboard();
       }
       this.state.set({ kind: 'missing_auth' });
+      this.stopAutoRefresh();
       return;
     }
 
@@ -45,14 +49,20 @@ export class DashboardStoreService {
       this.state.set({ kind: 'updating', data: cached.data });
     }
 
+    this.startAutoRefresh();
     await this.refresh();
   }
 
   async refresh(): Promise<void> {
+    if (this.fetching()) {
+      return;
+    }
+
     const credential = this.credential();
 
     if (!credential) {
       this.state.set({ kind: 'missing_auth' });
+      this.stopAutoRefresh();
       return;
     }
 
@@ -97,6 +107,7 @@ export class DashboardStoreService {
       // so the next launch doesn't paint data from a rejected credential.
       if (next.kind === 'invalid_auth') {
         void this.storage.clearCachedDashboard();
+        this.stopAutoRefresh();
       }
 
       this.state.set(next);
@@ -112,6 +123,7 @@ export class DashboardStoreService {
     await this.storage.clearCachedDashboard();
     const credential = await this.storage.saveCredential(input);
     this.credential.set(credential);
+    this.startAutoRefresh();
     await this.refresh();
   }
 
@@ -119,6 +131,35 @@ export class DashboardStoreService {
     await Promise.all([this.storage.clearCredential(), this.storage.clearCachedDashboard()]);
     this.credential.set(null);
     this.state.set({ kind: 'missing_auth' });
+    this.stopAutoRefresh();
+  }
+
+  setAutoRefreshIntervalMs(ms: number): void {
+    if (!Number.isFinite(ms) || ms < 0) {
+      return;
+    }
+    this.autoRefreshIntervalMs = ms;
+    this.stopAutoRefresh();
+    if (this.credential()) {
+      this.startAutoRefresh();
+    }
+  }
+
+  private startAutoRefresh(): void {
+    if (this.refreshTimer || this.autoRefreshIntervalMs <= 0) {
+      return;
+    }
+    this.refreshTimer = setInterval(() => {
+      void this.refresh();
+    }, this.autoRefreshIntervalMs);
+  }
+
+  private stopAutoRefresh(): void {
+    if (!this.refreshTimer) {
+      return;
+    }
+    clearInterval(this.refreshTimer);
+    this.refreshTimer = null;
   }
 }
 

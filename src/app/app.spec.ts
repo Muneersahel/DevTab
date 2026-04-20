@@ -29,5 +29,6 @@ function fakeStore(): Partial<DashboardStoreService> {
     refresh: vi.fn().mockResolvedValue(undefined),
     saveCredential: vi.fn().mockResolvedValue(undefined),
     clearCredential: vi.fn().mockResolvedValue(undefined),
+    setAutoRefreshIntervalMs: vi.fn(),
   };
 }

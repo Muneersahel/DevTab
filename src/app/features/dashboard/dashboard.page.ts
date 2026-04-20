@@ -47,6 +47,7 @@ import { DashboardSkeletonComponent } from './components/dashboard-skeleton.comp
 export class DashboardPageComponent {
   readonly state = input.required<DashboardState>();
   readonly fetching = input(false);
+  readonly autoRefreshIntervalMs = input(2 * 60 * 1000);
   readonly refreshRequested = output<void>();
   readonly settingsRequested = output<void>();
 
@@ -131,6 +132,12 @@ export class DashboardPageComponent {
 
   protected readonly isLoading = computed(() => this.state().kind === 'loading');
   protected readonly isSyncing = computed(() => this.fetching() || this.isLoading());
+  protected readonly autoRefreshLabel = computed(() => {
+    const ms = this.autoRefreshIntervalMs();
+    if (ms <= 0) return 'Off';
+    if (ms < 60_000) return `${Math.round(ms / 1000)}s`;
+    return `${Math.round(ms / 60_000)}m`;
+  });
 
   constructor() {
     void this.store.load();

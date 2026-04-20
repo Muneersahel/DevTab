@@ -9,7 +9,11 @@ import {
   VisibilityFlags,
 } from '../models/dashboard.model';
 import type { KanbanColumnId, Task, TaskKind, TaskStatus } from '../models/task.model';
-import { DEFAULT_UI_PREFERENCES, type DevTabUiPreferences } from '../models/ui-prefs.model';
+import {
+  AUTO_REFRESH_INTERVAL_OPTIONS_MS,
+  DEFAULT_UI_PREFERENCES,
+  type DevTabUiPreferences,
+} from '../models/ui-prefs.model';
 import { BestDay } from '../models/wakatime-stats.model';
 
 const CREDENTIAL_KEY = 'devtab.wakatimeCredential';
@@ -531,6 +535,17 @@ function parseUiPreferences(value: unknown): DevTabUiPreferences {
     const t = value['searchUrlTemplate'].trim();
     if (t.includes('%s')) {
       merged.searchUrlTemplate = t;
+    }
+  }
+
+  if (typeof value['autoRefreshIntervalMs'] === 'number') {
+    const interval = value['autoRefreshIntervalMs'];
+    if (
+      AUTO_REFRESH_INTERVAL_OPTIONS_MS.includes(
+        interval as (typeof AUTO_REFRESH_INTERVAL_OPTIONS_MS)[number],
+      )
+    ) {
+      merged.autoRefreshIntervalMs = interval;
     }
   }
 

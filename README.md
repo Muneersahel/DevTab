@@ -84,6 +84,7 @@ pnpm start
 ```
 
 Runs the Angular dev server for quick UI iteration. This is useful for layout work, but browser-extension APIs such as `chrome.storage.local` only behave fully when loaded as an unpacked extension.
+When running on `http://localhost:4200`, WakaTime API calls are sent through the local Angular dev-server proxy at `/wakatime-api` to avoid browser CORS restrictions.
 
 ## Test In Chrome
 

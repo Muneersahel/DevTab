@@ -1,0 +1,10 @@
+{
+  "/wakatime-api": {
+    "target": "https://api.wakatime.com",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/wakatime-api": ""
+    }
+  }
+}

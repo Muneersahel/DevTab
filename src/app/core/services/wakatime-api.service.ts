@@ -3,7 +3,8 @@ import { StoredWakaTimeCredential } from '../models/credential.model';
 import { WakaTimeErrorResponse, WakaTimeStatsResponse } from '../models/wakatime-stats.model';
 import { WakaTimeSummariesResponse } from '../models/wakatime-summaries.model';
 
-const API_BASE = 'https://api.wakatime.com/api/v1';
+const WAKATIME_API_BASE = 'https://api.wakatime.com/api/v1';
+const LOCAL_DEV_API_BASE = '/wakatime-api/api/v1';
 const SUMMARIES_DAY_SPAN = 7;
 
 export type WakaTimeApiErrorCode = 'invalid_auth' | 'network' | 'api_down' | 'malformed';
@@ -102,7 +103,7 @@ export class WakaTimeApiService {
     let response: Response;
 
     try {
-      response = await fetch(`${API_BASE}${path}`, {
+      response = await fetch(`${resolveApiBase()}${path}`, {
         headers: {
           Accept: 'application/json',
           Authorization: this.createAuthorizationHeader(credential),
@@ -143,6 +144,20 @@ export class WakaTimeApiService {
 
     return body;
   }
+}
+
+function resolveApiBase(): string {
+  const location = globalThis.location;
+
+  if (
+    location?.protocol === 'http:' &&
+    (location.hostname === 'localhost' || location.hostname === '127.0.0.1') &&
+    location.port === '4200'
+  ) {
+    return LOCAL_DEV_API_BASE;
+  }
+
+  return WAKATIME_API_BASE;
 }
 
 function isUnauthorized(status: number, body: unknown): boolean {

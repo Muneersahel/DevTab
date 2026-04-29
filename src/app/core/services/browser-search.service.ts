@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 interface ChromeSearch {
-  query?(details: { text: string; disposition?: string }): void;
+  query?(details: { text: string; disposition?: 'CURRENT_TAB' | 'NEW_TAB' | 'NEW_WINDOW' }): void;
 }
 
 interface ChromeWithSearch {
@@ -23,7 +23,7 @@ export class BrowserSearchService {
     const chromeLike = (globalThis as typeof globalThis & { chrome?: ChromeWithSearch }).chrome;
     const searchApi = chromeLike?.search;
     if (typeof searchApi?.query === 'function') {
-      searchApi.query({ text: trimmed });
+      searchApi.query({ text: trimmed, disposition: 'CURRENT_TAB' });
       return;
     }
 
@@ -31,6 +31,6 @@ export class BrowserSearchService {
       ? fallbackTemplate
       : 'https://www.google.com/search?q=%s';
     const url = template.split('%s').join(encodeURIComponent(trimmed));
-    globalThis.open(url, '_blank', 'noopener,noreferrer');
+    globalThis.location.assign(url);
   }
 }

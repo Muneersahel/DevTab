@@ -19,6 +19,7 @@ import { LanguageDonutComponent } from '../../shared/ui/language-donut.component
 import { MetricCardComponent } from '../../shared/ui/metric-card.component';
 import { UsageListComponent } from '../../shared/ui/usage-list.component';
 import { QuickSearchDialogComponent } from '../productivity/quick-search-dialog.component';
+import { RecentTasksPanelComponent } from '../productivity/recent-tasks-panel.component';
 import { TasksDialogComponent } from '../productivity/tasks-dialog.component';
 import { DashboardSkeletonComponent } from './components/dashboard-skeleton.component';
 
@@ -37,6 +38,7 @@ import { DashboardSkeletonComponent } from './components/dashboard-skeleton.comp
     DashboardSkeletonComponent,
     TasksDialogComponent,
     QuickSearchDialogComponent,
+    RecentTasksPanelComponent,
   ],
   templateUrl: './dashboard.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -42,6 +42,14 @@ export class TaskStoreService {
 
   readonly openTaskCount = computed(() => this.tasks().filter((t) => t.status !== 'done').length);
 
+  /** Tasks marked done whose `updatedAt` falls on the user's local calendar day. */
+  readonly completedTodayCount = computed(() => {
+    const todayYmd = localYmd(new Date());
+    return this.tasks().filter(
+      (t) => t.status === 'done' && localYmd(new Date(t.updatedAt)) === todayYmd,
+    ).length;
+  });
+
   readonly projectTasksByColumn = computed(() => {
     const map: Record<KanbanColumnId, Task[]> = {
       backlog: [],
@@ -262,6 +270,13 @@ function renumberProjectColumns(tasks: Task[]): Task[] {
       });
   }
   return out;
+}
+
+function localYmd(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function normalizeAllTasks(tasks: Task[]): Task[] {

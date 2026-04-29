@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { NgxSonnerToaster, toast } from 'ngx-sonner';
 import { WakaTimeCredentialInput } from './core/models/credential.model';
 import { DEFAULT_UI_PREFERENCES, type DevTabUiPreferences } from './core/models/ui-prefs.model';
 import { DashboardStoreService } from './core/services/dashboard-store.service';
@@ -8,7 +9,7 @@ import { SettingsPanelComponent } from './features/settings/settings-panel.compo
 
 @Component({
   selector: 'dt-root',
-  imports: [DashboardPageComponent, SettingsPanelComponent],
+  imports: [DashboardPageComponent, SettingsPanelComponent, NgxSonnerToaster],
   template: `
     <dt-dashboard-page
       [state]="store.state()"
@@ -28,6 +29,15 @@ import { SettingsPanelComponent } from './features/settings/settings-panel.compo
         (preferencesSaved)="saveUiPreferences($event)"
       />
     }
+
+    <ngx-sonner-toaster
+      theme="dark"
+      position="bottom-right"
+      [richColors]="true"
+      [closeButton]="true"
+      [duration]="4200"
+      offset="5.5rem"
+    />
   `,
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,14 +61,21 @@ export class App implements OnInit {
   }
 
   protected saveCredential(credential: WakaTimeCredentialInput): void {
-    void this.store.saveCredential(credential).then(() => {
-      this.settingsOpen.set(false);
-    });
+    void this.store.saveCredential(credential).then(
+      () => {
+        this.settingsOpen.set(false);
+        toast.success('WakaTime credential saved. Your dashboard is updating.');
+      },
+      () => {
+        toast.error('Could not verify that credential. Check the token and try again.');
+      },
+    );
   }
 
   protected clearCredential(): void {
     void this.store.clearCredential().then(() => {
       this.settingsOpen.set(false);
+      toast.success('WakaTime credential removed from this browser.');
     });
   }
 
@@ -66,6 +83,8 @@ export class App implements OnInit {
     void this.storage.saveUiPreferences(prefs).then(() => {
       this.uiPrefs.set(prefs);
       this.store.setAutoRefreshIntervalMs(prefs.autoRefreshIntervalMs);
+      this.settingsOpen.set(false);
+      toast.success('Preferences saved.');
     });
   }
 }

@@ -2,6 +2,22 @@
  * Global Vitest setup (runs after Angular's init-testbed). jsdom does not
  * implement Canvas 2D, which Chart.js touches when dashboard widgets render.
  */
+if (typeof window.matchMedia !== 'function') {
+  window.matchMedia = (query: string): MediaQueryList => {
+    const list = {
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    } as MediaQueryList;
+    return list;
+  };
+}
+
 const origGetContext = HTMLCanvasElement.prototype.getContext;
 
 function stubCanvasGradient(): CanvasGradient {

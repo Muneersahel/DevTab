@@ -37,6 +37,12 @@ importers:
       chart.js:
         specifier: ^4.5.1
         version: 4.5.1
+      ngx-sonner:
+        specifier: ^3.1.0
+        version: 3.1.0(@angular/common@21.2.9(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2))
+      ngxtension:
+        specifier: ^7.2.0
+        version: 7.2.0(@angular/common@21.2.9(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2))(rxjs@7.8.2)
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -4416,6 +4422,30 @@ packages:
       }
     engines: { node: '>= 0.6' }
 
+  ngx-sonner@3.1.0:
+    resolution:
+      {
+        integrity: sha512-hN5GolhBeVs0gzPNZi2VPnbv/sM+3+aMGCvIjH33MC8LHz+QIiOUWGw3AbnCH/hQxy08AGwkWHVYy1acvXByQQ==,
+      }
+    peerDependencies:
+      '@angular/common': '>=19.0.0'
+      '@angular/core': '>=19.0.0'
+
+  ngxtension@7.2.0:
+    resolution:
+      {
+        integrity: sha512-ohTUzbYSGAZQzvbeRGP5tkIRWxn7246zzQU4cVhcPjyzHU7O+EXYsCkuQktu4LZHcQ+KyVEQP90u5W1+xizH2A==,
+      }
+    engines: { node: '>=18' }
+    peerDependencies:
+      '@angular/common': '>=19.0.0'
+      '@angular/core': '>=19.0.0'
+      '@use-gesture/vanilla': ^10.0.0
+      rxjs: ^6.0.0 || ^7.0.0
+    peerDependenciesMeta:
+      '@use-gesture/vanilla':
+        optional: true
+
   node-addon-api@6.1.0:
     resolution:
       {
@@ -8123,6 +8153,19 @@ snapshots:
   natural-compare@1.4.0: {}
 
   negotiator@1.0.0: {}
+
+  ngx-sonner@3.1.0(@angular/common@21.2.9(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2)):
+    dependencies:
+      '@angular/common': 21.2.9(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@angular/core': 21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2)
+      tslib: 2.8.1
+
+  ngxtension@7.2.0(@angular/common@21.2.9(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2))(rxjs@7.8.2):
+    dependencies:
+      '@angular/common': 21.2.9(@angular/core@21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@angular/core': 21.2.9(@angular/compiler@21.2.9)(rxjs@7.8.2)
+      rxjs: 7.8.2
+      tslib: 2.8.1
 
   node-addon-api@6.1.0:
     optional: true

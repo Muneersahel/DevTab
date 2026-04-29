@@ -13,8 +13,11 @@ import { registerCharts } from './chart-registry';
 
 @Component({
   selector: 'dt-activity-chart',
+  host: {
+    class: 'block min-h-0 h-full w-full',
+  },
   template: `
-    <div class="relative h-full w-full">
+    <div class="relative h-full min-h-0 w-full">
       <canvas #canvas aria-hidden="true"></canvas>
     </div>
   `,

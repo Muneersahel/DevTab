@@ -2,7 +2,6 @@ import { DOCUMENT } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   ElementRef,
   effect,
   inject,
@@ -11,6 +10,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { UsageItem } from '../../core/models/dashboard.model';
+import {
+  lockDocumentBodyScroll,
+  unlockDocumentBodyScroll,
+} from '../../core/utils/document-scroll-lock';
 import { UsageListComponent } from './usage-list.component';
 
 /**
@@ -25,18 +28,20 @@ import { UsageListComponent } from './usage-list.component';
   template: `
     <dialog
       #dialog
-      class="dt-dialog m-auto w-full max-w-lg rounded-2xl border border-white/8 bg-zinc-950/95 p-0 text-zinc-100 shadow-[0_30px_120px_-30px_rgba(16,185,129,0.35)] backdrop:bg-black/70 backdrop:backdrop-blur-sm"
+      class="dt-dialog m-auto flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-white/8 bg-zinc-950/95 p-0 text-zinc-100 shadow-[0_30px_120px_-30px_rgba(16,185,129,0.35)] backdrop:bg-black/70 backdrop:backdrop-blur-sm"
       (close)="dismissed.emit()"
     >
-      <div class="relative min-w-0 max-h-[80vh]">
+      <div class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <button
           type="button"
           class="absolute inset-0 z-0 m-0 cursor-default border-0 bg-transparent p-0"
           aria-label="Dismiss dialog"
           (click)="close()"
         ></button>
-        <div class="relative z-10 flex flex-col">
-          <header class="flex items-start justify-between gap-4 border-b border-white/6 px-6 py-5">
+        <div class="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+          <header
+            class="flex shrink-0 items-start justify-between gap-4 border-b border-white/6 bg-zinc-950/95 px-6 py-5"
+          >
             <div class="min-w-0">
               <p class="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
                 {{ eyebrow() }}
@@ -67,7 +72,7 @@ import { UsageListComponent } from './usage-list.component';
             </button>
           </header>
 
-          <div class="overflow-y-auto px-6 py-5">
+          <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
             <dt-usage-list
               [items]="items()"
               [showSwatch]="showSwatch()"
@@ -79,44 +84,6 @@ import { UsageListComponent } from './usage-list.component';
       </div>
     </dialog>
   `,
-  styles: [
-    `
-      .dt-dialog {
-        opacity: 0;
-        transform: translateY(8px) scale(0.98);
-        transition:
-          opacity 160ms ease-out,
-          transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-          overlay 200ms ease-out allow-discrete,
-          display 200ms ease-out allow-discrete;
-      }
-      .dt-dialog[open] {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-      @starting-style {
-        .dt-dialog[open] {
-          opacity: 0;
-          transform: translateY(8px) scale(0.98);
-        }
-      }
-      .dt-dialog::backdrop {
-        opacity: 0;
-        transition:
-          opacity 200ms ease-out,
-          overlay 200ms ease-out allow-discrete,
-          display 200ms ease-out allow-discrete;
-      }
-      .dt-dialog[open]::backdrop {
-        opacity: 1;
-      }
-      @starting-style {
-        .dt-dialog[open]::backdrop {
-          opacity: 0;
-        }
-      }
-    `,
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataDialogComponent {
@@ -132,51 +99,27 @@ export class DataDialogComponent {
   private readonly document = inject(DOCUMENT);
 
   constructor() {
-    const destroyRef = inject(DestroyRef);
-    // Restore scroll if the component is torn down while the dialog is open.
-    destroyRef.onDestroy(() => this.setBodyScrollLocked(false));
+    effect((onCleanup) => {
+      if (!this.open()) return;
 
-    effect(() => {
       const dialog = this.dialogRef()?.nativeElement;
       if (!dialog) return;
 
-      if (this.open()) {
-        if (!dialog.open) dialog.showModal();
-        this.setBodyScrollLocked(true);
-      } else {
-        if (dialog.open) dialog.close();
-        this.setBodyScrollLocked(false);
+      if (!dialog.open) {
+        dialog.showModal?.();
       }
+      lockDocumentBodyScroll(this.document);
+
+      onCleanup(() => {
+        unlockDocumentBodyScroll(this.document);
+        if (dialog.open) {
+          dialog.close?.();
+        }
+      });
     });
   }
 
   protected close(): void {
-    this.dialogRef()?.nativeElement.close();
-  }
-
-  /**
-   * Lock body scroll while the modal is open so the page behind the
-   * backdrop stays put. Compensate for the disappearing scrollbar via
-   * `padding-right` to avoid a layout shift on desktop browsers that
-   * reserve scrollbar gutter.
-   */
-  private setBodyScrollLocked(locked: boolean): void {
-    const body = this.document.body;
-    if (!body) return;
-
-    if (locked) {
-      const scrollbarWidth = window.innerWidth - this.document.documentElement.clientWidth;
-      body.dataset['dtPrevOverflow'] = body.style.overflow;
-      body.dataset['dtPrevPaddingRight'] = body.style.paddingRight;
-      body.style.overflow = 'hidden';
-      if (scrollbarWidth > 0) {
-        body.style.paddingRight = `${scrollbarWidth}px`;
-      }
-    } else {
-      body.style.overflow = body.dataset['dtPrevOverflow'] ?? '';
-      body.style.paddingRight = body.dataset['dtPrevPaddingRight'] ?? '';
-      delete body.dataset['dtPrevOverflow'];
-      delete body.dataset['dtPrevPaddingRight'];
-    }
+    this.dialogRef()?.nativeElement.close?.();
   }
 }

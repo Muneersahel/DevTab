@@ -35,13 +35,13 @@ export type MetricTone = 'default' | 'accent';
 
       <div class="mt-4 min-w-0 flex-1">
         <p
-          class="truncate font-mono text-[30px] font-semibold leading-none tracking-tight tabular-nums text-zinc-50"
+          class="font-mono text-[22px] font-semibold leading-tight tracking-tight tabular-nums wrap-break-word text-zinc-50 sm:text-[24px] lg:text-[26px]"
           [title]="value()"
         >
           {{ value() }}
         </p>
         @if (detail()) {
-          <p class="mt-3 truncate text-[13px] leading-snug text-zinc-400" [title]="detail()">
+          <p class="mt-3 text-[13px] leading-snug text-zinc-400 line-clamp-2" [title]="detail()">
             {{ detail() }}
           </p>
         }

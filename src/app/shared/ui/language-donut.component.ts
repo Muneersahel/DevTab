@@ -65,6 +65,15 @@ export class LanguageDonutComponent {
         plugins: {
           legend: { display: false },
           tooltip: {
+            backgroundColor: '#18181b',
+            titleColor: '#fafafa',
+            bodyColor: '#e4e4e7',
+            borderColor: 'rgba(255, 255, 255, 0.12)',
+            borderWidth: 1,
+            padding: 10,
+            cornerRadius: 6,
+            displayColors: true,
+            boxPadding: 6,
             callbacks: {
               label: (ctx) => {
                 const item = this.data()[ctx.dataIndex];

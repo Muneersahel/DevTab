@@ -34,7 +34,7 @@
     "@angular/build": "^21.2.7",
     "@angular/cli": "^21.2.7",
     "@angular/compiler-cli": "^21.2.0",
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^7.29.6",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/chrome": "^0.1.40",

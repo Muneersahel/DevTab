@@ -47,17 +47,17 @@ import { FormsModule } from '@angular/forms';
           ></div>
 
           <header class="relative border-b border-white/6 px-4 pb-3 pt-3.5 sm:px-5 sm:pt-4">
-            <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-400/85">
+            <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-400/85">
               / invoke · web search
             </p>
             <h2 id="quick-search-title" class="sr-only">Web search command</h2>
             <p class="mt-2 font-mono text-[13px] leading-snug text-zinc-300">
               <span class="text-emerald-400/90" aria-hidden="true">⟩</span>
-              <span class="ml-1.5 text-zinc-500">Waiting for your query.</span>
+              <span class="ml-1.5 text-zinc-400">Waiting for your query.</span>
             </p>
             <p
               id="quick-search-hint"
-              class="mt-1.5 text-[12px] leading-relaxed text-zinc-600 truncate"
+              class="mt-1.5 text-[12px] leading-relaxed text-zinc-400 truncate"
             >
               Uses your browser’s default search when available — fallback URL lives in Settings.
             </p>
@@ -80,7 +80,7 @@ import { FormsModule } from '@angular/forms';
                 #searchQuery
                 id="quick-search-input"
                 name="searchQuery"
-                class="min-w-0 flex-1 border-0 bg-transparent px-3 py-3 font-mono text-[15px] text-zinc-100 caret-emerald-400 placeholder:text-zinc-600 placeholder:opacity-90 focus:outline-none"
+                class="min-w-0 flex-1 border-0 bg-transparent px-3 py-3 font-mono text-[15px] text-zinc-100 caret-emerald-400 placeholder:text-zinc-400 placeholder:opacity-90 focus:outline-none"
                 type="text"
                 autocomplete="off"
                 spellcheck="false"
@@ -95,7 +95,7 @@ import { FormsModule } from '@angular/forms';
             class="relative flex flex-col gap-2 border-t border-white/6 bg-black/25 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-5"
           >
             <p
-              class="order-2 font-mono text-[10px] uppercase tracking-wider text-zinc-600 sm:order-1"
+              class="order-2 font-mono text-[11px] uppercase tracking-wider text-zinc-400 sm:order-1"
             >
               @if (query().trim()) {
                 <span class="text-emerald-400/70">Ready</span>
@@ -104,18 +104,18 @@ import { FormsModule } from '@angular/forms';
               }
             </p>
             <div
-              class="order-1 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[10px] text-zinc-500 sm:order-2 sm:justify-end"
+              class="order-1 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-zinc-400 sm:order-2 sm:justify-end"
             >
               <span class="inline-flex items-center gap-1.5">
                 <kbd
-                  class="rounded border border-white/12 bg-white/4 px-1.5 py-px text-[10px] text-zinc-400"
+                  class="rounded border border-white/12 bg-white/4 px-1.5 py-px text-[11px] text-zinc-400"
                   >esc</kbd
                 >
                 <span>cancel</span>
               </span>
               <span class="inline-flex items-center gap-1.5">
                 <kbd
-                  class="rounded border border-white/12 bg-white/4 px-1.5 py-px text-[10px] text-emerald-400/90"
+                  class="rounded border border-white/12 bg-white/4 px-1.5 py-px text-[11px] text-emerald-400/90"
                   >&#8617;</kbd
                 >
                 <span>run</span>

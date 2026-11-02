@@ -12,6 +12,8 @@ export interface DashboardViewModel {
   totalTime: string;
   totalTimeIncludingOther: string | null;
   dailyAverage: string;
+  /** Daily average in seconds; 0 when unknown. Drives the activity average line. */
+  dailyAverageSeconds: number;
   rangeLabel: string;
   bestDay: BestDay | null;
   topLanguage: UsageItem | null;
@@ -29,6 +31,10 @@ export interface DashboardViewModel {
   machines: UsageItem[];
   machinesAll: UsageItem[];
   aiVsHuman: AiVsHumanStats | null;
+  /** Latest day in the summaries range (today when the data is fresh). */
+  today: TodaySummary | null;
+  /** Days with tracked time out of the days in the summaries range. */
+  activeDays: { active: number; total: number } | null;
   activity: ActivityDay[];
   activityUnavailable: boolean;
   visibility: VisibilityFlags;
@@ -57,6 +63,17 @@ export interface AiVsHumanStats {
   aiSharePercent: number;
   /** True when there is enough data to render a meaningful breakdown. */
   hasData: boolean;
+}
+
+export interface TodaySummary {
+  date: string;
+  time: string;
+  /** Today's time as a percentage of the daily average, or null without an average. */
+  percentOfAverage: number | null;
+  /** Time left to reach the daily average; null once it is reached. */
+  remainingToAverage: string | null;
+  topProject: string | null;
+  topLanguage: string | null;
 }
 
 export interface VisibilityFlags {

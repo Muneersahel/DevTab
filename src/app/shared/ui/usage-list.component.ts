@@ -28,7 +28,7 @@ import { CHART_PALETTE } from './chart-registry';
               class="shrink-0 whitespace-nowrap pt-0.5 text-right font-mono text-[11px] leading-tight tabular-nums text-zinc-400"
             >
               {{ item.time }}
-              <span class="text-zinc-600" aria-hidden="true"> · </span>
+              <span class="text-zinc-400" aria-hidden="true"> · </span>
               {{ item.percent | number: '1.0-0' }}%
             </span>
           </div>
@@ -41,7 +41,7 @@ import { CHART_PALETTE } from './chart-registry';
           </div>
         </li>
       } @empty {
-        <li class="text-sm text-zinc-500">{{ emptyMessage() }}</li>
+        <li class="text-sm text-zinc-400">{{ emptyMessage() }}</li>
       }
     </ul>
   `,

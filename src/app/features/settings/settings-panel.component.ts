@@ -25,7 +25,7 @@ import {
 } from '../../core/utils/document-scroll-lock';
 
 const fieldClass =
-  'mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-zinc-600 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/15';
+  'mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-zinc-400 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/15';
 
 @Component({
   selector: 'dt-settings-panel',
@@ -44,7 +44,7 @@ const fieldClass =
           class="relative z-10 flex shrink-0 items-start justify-between gap-4 border-b border-white/6 bg-zinc-950/95 px-6 py-5"
         >
           <div class="min-w-0">
-            <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-400/85">
+            <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-400/85">
               / workspace
             </p>
             <h2
@@ -53,7 +53,7 @@ const fieldClass =
             >
               Settings
             </h2>
-            <p id="settings-desc" class="mt-1 text-[13px] leading-relaxed text-zinc-500">
+            <p id="settings-desc" class="mt-1 text-[13px] leading-relaxed text-zinc-400">
               Credentials stay in this browser only.
             </p>
           </div>
@@ -85,11 +85,11 @@ const fieldClass =
         >
           <form class="space-y-5" [formGroup]="form" (ngSubmit)="submit()">
             <div>
-              <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-zinc-500">
+              <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-400">
                 / wakatime
               </p>
               <h3 class="mt-2 text-sm font-medium text-zinc-200">Connection</h3>
-              <p class="mt-1 text-[12px] leading-relaxed text-zinc-500">
+              <p class="mt-1 text-[12px] leading-relaxed text-zinc-400">
                 Use a WakaTime OAuth access token. WakaTime API keys only work for editor plugins.
                 <a
                   class="text-emerald-300 underline-offset-2 hover:underline"
@@ -102,7 +102,7 @@ const fieldClass =
             </div>
 
             <label class="block">
-              <span class="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-500"
+              <span class="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400"
                 >OAuth token</span
               >
               <input
@@ -159,14 +159,14 @@ const fieldClass =
             (ngSubmit)="savePrefs()"
           >
             <div>
-              <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-zinc-500">
+              <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-400">
                 / preferences
               </p>
               <h3 class="mt-2 text-sm font-medium text-zinc-200">Dashboard</h3>
             </div>
 
             <label class="block">
-              <span class="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-500"
+              <span class="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400"
                 >Auto-refresh interval</span
               >
               <select class="${fieldClass}" formControlName="autoRefreshIntervalMs">
@@ -175,16 +175,16 @@ const fieldClass =
                 }
               </select>
             </label>
-            <p class="text-[12px] leading-relaxed text-zinc-500">
+            <p class="text-[12px] leading-relaxed text-zinc-400">
               Controls how often analytics refresh in the background.
             </p>
 
             <div class="border-t border-white/6 pt-6">
-              <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-zinc-500">
+              <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-400">
                 / quick search
               </p>
               <h3 class="mt-2 text-sm font-medium text-zinc-200">Fallback search URL</h3>
-              <p class="mt-1 text-[12px] leading-relaxed text-zinc-500">
+              <p class="mt-1 text-[12px] leading-relaxed text-zinc-400">
                 Used when
                 <code
                   class="rounded border border-white/10 bg-black/30 px-1 py-0.5 font-mono text-[11px] text-zinc-400"
@@ -200,7 +200,7 @@ const fieldClass =
             </div>
 
             <label class="block">
-              <span class="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-500"
+              <span class="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400"
                 >Search URL template</span
               >
               <input

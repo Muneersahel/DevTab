@@ -1,10 +1,8 @@
 import {
-  ArcElement,
   BarController,
   BarElement,
   CategoryScale,
   Chart,
-  DoughnutController,
   Filler,
   LinearScale,
   LineController,
@@ -26,8 +24,6 @@ export function registerCharts(): void {
     LineController,
     LineElement,
     PointElement,
-    DoughnutController,
-    ArcElement,
     CategoryScale,
     LinearScale,
     Filler,
@@ -41,7 +37,7 @@ export function registerCharts(): void {
   Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.04)';
   // Mutate the existing defaults instead of replacing the object — Chart.js
   // walks internal `_fallback` fields on this scope to resolve per-property
-  // animation configs (e.g. doughnut's `numbers`). Reassigning the whole
+  // animation configs (e.g. `numbers`). Reassigning the whole
   // object strips those, which causes `Animator.tick` to crash with
   // "this._fn is not a function" when an animation can't resolve its easing.
   const animationDefaults = Chart.defaults.animation as { duration: number; easing: string };

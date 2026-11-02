@@ -57,13 +57,13 @@ import { TaskStoreService } from '../../core/services/task-store.service';
               >
                 What's on your plate
               </h2>
-              <p class="mt-1 text-[12px] text-zinc-500">
+              <p class="mt-1 text-[12px] text-zinc-400">
                 <span class="font-mono tabular-nums text-zinc-300">{{
                   store.openTaskCount()
                 }}</span>
                 open
                 @if (store.completedTodayCount() > 0) {
-                  <span class="mx-1.5 text-zinc-700">·</span>
+                  <span class="mx-1.5 text-zinc-400">·</span>
                   <span class="font-mono tabular-nums text-zinc-400">{{
                     store.completedTodayCount()
                   }}</span>
@@ -104,14 +104,14 @@ import { TaskStoreService } from '../../core/services/task-store.service';
               #addInput
               id="tasks-dialog-input"
               name="newTaskTitle"
-              class="min-w-0 flex-1 bg-transparent py-1 text-[14px] text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+              class="min-w-0 flex-1 bg-transparent py-1 text-[14px] text-zinc-100 placeholder:text-zinc-400 focus:outline-none"
               type="text"
               placeholder="Capture a quick task…"
               [(ngModel)]="newTitle"
               autocomplete="off"
             />
             <kbd
-              class="hidden rounded border border-white/10 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 sm:inline"
+              class="hidden rounded border border-white/10 px-1.5 py-0.5 font-mono text-[11px] text-zinc-400 sm:inline"
               aria-hidden="true"
               >↵</kbd
             >
@@ -127,7 +127,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
                     >
                       Now
                     </h3>
-                    <span class="font-mono text-[11px] tabular-nums text-zinc-600">
+                    <span class="font-mono text-[11px] tabular-nums text-zinc-400">
                       {{ nowTasks().length }}
                     </span>
                   </header>
@@ -145,7 +145,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
                     <h3 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
                       Up next
                     </h3>
-                    <span class="font-mono text-[11px] tabular-nums text-zinc-600">
+                    <span class="font-mono text-[11px] tabular-nums text-zinc-400">
                       {{ upNextTasks().length }}
                     </span>
                   </header>
@@ -160,7 +160,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
               @if (doneTasks().length) {
                 <details class="group">
                   <summary
-                    class="flex cursor-pointer list-none items-center justify-between py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 hover:text-zinc-300"
+                    class="flex cursor-pointer list-none items-center justify-between py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400 hover:text-zinc-300"
                   >
                     <span class="inline-flex items-center gap-2">
                       <svg
@@ -175,7 +175,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
                       </svg>
                       Done
                     </span>
-                    <span class="font-mono tabular-nums text-zinc-600">
+                    <span class="font-mono tabular-nums text-zinc-400">
                       {{ doneTasks().length }}
                     </span>
                   </summary>
@@ -189,8 +189,8 @@ import { TaskStoreService } from '../../core/services/task-store.service';
 
               @if (!nowTasks().length && !upNextTasks().length && !doneTasks().length) {
                 <div class="px-2 py-16 text-center">
-                  <p class="font-serif-italic text-lg text-zinc-500">An empty inbox.</p>
-                  <p class="mt-1 text-[12px] text-zinc-600">
+                  <p class="font-serif-italic text-lg text-zinc-400">An empty inbox.</p>
+                  <p class="mt-1 text-[12px] text-zinc-400">
                     Type above and press enter to capture something.
                   </p>
                 </div>
@@ -199,7 +199,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
           </div>
 
           <footer
-            class="flex items-center justify-between border-t border-white/6 bg-black/30 px-5 py-3 font-mono text-[11px] text-zinc-500 sm:px-6"
+            class="flex items-center justify-between border-t border-white/6 bg-black/30 px-5 py-3 font-mono text-[11px] text-zinc-400 sm:px-6"
           >
             <span>
               <kbd class="rounded border border-white/10 px-1 py-0.5 text-zinc-400">esc</kbd>
@@ -256,7 +256,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
               type="button"
               class="min-w-0 flex-1 truncate text-left text-[14px]"
               [class.text-zinc-100]="task.status !== 'done'"
-              [class.text-zinc-600]="task.status === 'done'"
+              [class.text-zinc-400]="task.status === 'done'"
               [class.line-through]="task.status === 'done'"
               (click)="startEdit(task)"
             >
@@ -265,7 +265,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
           }
 
           <span
-            class="shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+            class="shrink-0 rounded border px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wider"
             [class]="kindClasses(task)"
           >
             {{ kindLabel(task) }}
@@ -273,7 +273,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
 
           @if (task.dueAt) {
             <span
-              class="hidden shrink-0 font-mono text-[11px] tabular-nums text-zinc-500 sm:inline"
+              class="hidden shrink-0 font-mono text-[11px] tabular-nums text-zinc-400 sm:inline"
             >
               {{ task.dueAt | date: 'd MMM' }}
             </span>
@@ -281,7 +281,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
 
           <button
             type="button"
-            class="shrink-0 font-mono text-[11px] text-zinc-600 opacity-0 transition hover:text-red-300 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
+            class="shrink-0 font-mono text-[11px] text-zinc-400 opacity-0 transition hover:text-red-300 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
             (click)="remove(task.id)"
             [attr.aria-label]="'Delete: ' + task.title"
           >
@@ -400,7 +400,7 @@ export class TasksDialogComponent {
 
   protected kindClasses(task: Task): string {
     if (task.status === 'done') {
-      return 'border-white/8 bg-white/3 text-zinc-600';
+      return 'border-white/8 bg-white/3 text-zinc-400';
     }
     if (task.kind === 'quick') {
       return 'border-emerald-400/25 bg-emerald-400/5 text-emerald-300';

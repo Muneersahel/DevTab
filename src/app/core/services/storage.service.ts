@@ -5,6 +5,7 @@ import {
   AiVsHumanStats,
   DashboardStatus,
   DashboardViewModel,
+  TodaySummary,
   UsageItem,
   VisibilityFlags,
 } from '../models/dashboard.model';
@@ -336,6 +337,8 @@ function deserializeDashboard(
     totalTime: value['totalTime'],
     totalTimeIncludingOther,
     dailyAverage: value['dailyAverage'],
+    dailyAverageSeconds:
+      typeof value['dailyAverageSeconds'] === 'number' ? value['dailyAverageSeconds'] : 0,
     rangeLabel: value['rangeLabel'],
     bestDay: parseBestDay(value['bestDay']),
     topLanguage: parseUsageItem(value['topLanguage']),
@@ -353,6 +356,8 @@ function deserializeDashboard(
     machines,
     machinesAll: machinesAll.length ? machinesAll : machines,
     aiVsHuman,
+    today: parseToday(value['today']),
+    activeDays: parseActiveDays(value['activeDays']),
     activity,
     activityUnavailable: value['activityUnavailable'],
     visibility,
@@ -513,6 +518,38 @@ function parseAiVsHuman(value: unknown): AiVsHumanStats | null {
   }
 
   return null;
+}
+
+function parseToday(value: unknown): TodaySummary | null {
+  if (!isRecord(value) || typeof value['date'] !== 'string' || typeof value['time'] !== 'string') {
+    return null;
+  }
+
+  return {
+    date: value['date'],
+    time: value['time'],
+    percentOfAverage:
+      typeof value['percentOfAverage'] === 'number' ? value['percentOfAverage'] : null,
+    remainingToAverage: readNullableString(value['remainingToAverage']),
+    topProject: readNullableString(value['topProject']),
+    topLanguage: readNullableString(value['topLanguage']),
+  };
+}
+
+function parseActiveDays(value: unknown): DashboardViewModel['activeDays'] {
+  if (
+    isRecord(value) &&
+    typeof value['active'] === 'number' &&
+    typeof value['total'] === 'number'
+  ) {
+    return { active: value['active'], total: value['total'] };
+  }
+
+  return null;
+}
+
+function readNullableString(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
 }
 
 function parseUiPreferences(value: unknown): DevTabUiPreferences {

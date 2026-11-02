@@ -17,6 +17,7 @@ import { SettingsPanelComponent } from './features/settings/settings-panel.compo
       [autoRefreshIntervalMs]="uiPrefs().autoRefreshIntervalMs"
       (refreshRequested)="refresh()"
       (settingsRequested)="settingsOpen.set(true)"
+      (credentialSubmitted)="saveCredential({ token: $event })"
     />
 
     @if (settingsOpen()) {

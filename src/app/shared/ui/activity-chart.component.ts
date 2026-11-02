@@ -7,10 +7,17 @@ import {
   input,
   viewChild,
 } from '@angular/core';
-import type { Chart, ChartConfiguration } from 'chart.js';
+import type { Chart, ChartConfiguration, ScriptableContext } from 'chart.js';
 import { ActivityDay } from '../../core/models/dashboard.model';
 import { registerCharts } from './chart-registry';
 
+const PAST_DAY_COLOR = 'rgba(52, 211, 153, 0.32)';
+const AVERAGE_LINE_COLOR = 'rgba(244, 244, 245, 0.45)';
+
+/**
+ * Daily coding bars. The latest day (today, when the data is fresh) is drawn
+ * in full emerald, and a dashed line marks the daily average.
+ */
 @Component({
   selector: 'dt-activity-chart',
   host: {
@@ -20,14 +27,21 @@ import { registerCharts } from './chart-registry';
     <div class="relative h-full min-h-0 w-full">
       <canvas #canvas aria-hidden="true"></canvas>
     </div>
+    <ul class="sr-only" aria-label="Coding time per day">
+      @for (day of data(); track day.date) {
+        <li>{{ day.label }} {{ day.date }}: {{ day.time }}</li>
+      }
+    </ul>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ActivityChartComponent {
   readonly data = input.required<ActivityDay[]>();
+  /** Daily average in seconds; the average line is hidden when 0. */
+  readonly averageSeconds = input(0);
 
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
-  private chart: Chart | null = null;
+  private chart: Chart<'bar' | 'line'> | null = null;
 
   constructor() {
     afterNextRender(() => {
@@ -36,6 +50,7 @@ export class ActivityChartComponent {
 
     effect(() => {
       this.data();
+      this.averageSeconds();
       if (this.chart) {
         this.updateChart();
       }
@@ -53,20 +68,32 @@ export class ActivityChartComponent {
 
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.offsetHeight || 220);
     gradient.addColorStop(0, 'rgba(52, 211, 153, 0.95)');
-    gradient.addColorStop(1, 'rgba(52, 211, 153, 0.25)');
+    gradient.addColorStop(1, 'rgba(52, 211, 153, 0.45)');
 
-    const config: ChartConfiguration<'bar'> = {
+    const config: ChartConfiguration<'bar' | 'line'> = {
       type: 'bar',
       data: {
-        labels: this.data().map((d) => d.label),
+        labels: this.labels(),
         datasets: [
           {
+            type: 'bar',
             label: 'Coding time',
-            data: this.data().map((d) => Math.round((d.totalSeconds / 60) * 10) / 10),
-            backgroundColor: gradient,
+            data: this.minutes(),
+            backgroundColor: (context: ScriptableContext<'bar'>) =>
+              context.dataIndex === this.data().length - 1 ? gradient : PAST_DAY_COLOR,
             borderRadius: 6,
             borderSkipped: false,
             maxBarThickness: 36,
+          },
+          {
+            type: 'line',
+            label: 'Daily average',
+            data: this.averageLine(),
+            borderColor: AVERAGE_LINE_COLOR,
+            borderWidth: 1,
+            borderDash: [4, 4],
+            pointRadius: 0,
+            pointHoverRadius: 0,
           },
         ],
       },
@@ -77,6 +104,7 @@ export class ActivityChartComponent {
         plugins: {
           legend: { display: false },
           tooltip: {
+            filter: (item) => item.datasetIndex === 0,
             callbacks: {
               label: (ctx) => {
                 const day = this.data()[ctx.dataIndex];
@@ -100,8 +128,8 @@ export class ActivityChartComponent {
             grid: { color: 'rgba(255, 255, 255, 0.04)' },
             border: { display: false },
             ticks: {
-              color: 'rgba(113, 113, 122, 0.9)',
-              font: { size: 10 },
+              color: 'rgba(161, 161, 170, 0.9)',
+              font: { size: 11 },
               maxTicksLimit: 4,
               callback: (value) => {
                 const n = Number(value);
@@ -127,9 +155,23 @@ export class ActivityChartComponent {
     if (!this.chart) {
       return;
     }
-    const days = this.data();
-    this.chart.data.labels = days.map((d) => d.label);
-    this.chart.data.datasets[0].data = days.map((d) => Math.round((d.totalSeconds / 60) * 10) / 10);
+    this.chart.data.labels = this.labels();
+    this.chart.data.datasets[0].data = this.minutes();
+    this.chart.data.datasets[1].data = this.averageLine();
     this.chart.update('none');
+  }
+
+  private labels(): string[] {
+    return this.data().map((d) => d.label);
+  }
+
+  private minutes(): number[] {
+    return this.data().map((d) => Math.round((d.totalSeconds / 60) * 10) / 10);
+  }
+
+  private averageLine(): (number | null)[] {
+    const average = this.averageSeconds();
+    const value = average > 0 ? Math.round((average / 60) * 10) / 10 : null;
+    return this.data().map(() => value);
   }
 }

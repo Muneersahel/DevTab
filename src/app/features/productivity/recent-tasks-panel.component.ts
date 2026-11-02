@@ -24,13 +24,13 @@ import { TaskStoreService } from '../../core/services/task-store.service';
           id="recent-tasks-heading"
           class="mt-1 text-[15px] font-semibold tracking-tight text-zinc-50"
         >
-          Recent
+          Up next
         </h2>
-        <p class="mt-1 text-[12px] text-zinc-500">
+        <p class="mt-1 text-[12px] text-zinc-400">
           <span class="font-mono tabular-nums text-zinc-300">{{ store.openTaskCount() }}</span>
           open
           @if (store.completedTodayCount() > 0) {
-            <span class="mx-1.5 text-zinc-700">·</span>
+            <span class="mx-1.5 text-zinc-400">·</span>
             <span class="font-mono tabular-nums text-zinc-400">{{
               store.completedTodayCount()
             }}</span>
@@ -48,7 +48,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
         <input
           id="recent-tasks-input"
           name="recentNewTitle"
-          class="min-w-0 flex-1 bg-transparent py-1 text-[13px] text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+          class="min-w-0 flex-1 bg-transparent py-1 text-[13px] text-zinc-100 placeholder:text-zinc-400"
           type="text"
           placeholder="Capture a quick task…"
           [ngModel]="newTitle()"
@@ -64,8 +64,8 @@ import { TaskStoreService } from '../../core/services/task-store.service';
           <ng-container *ngTemplateOutlet="row; context: { $implicit: task }" />
         } @empty {
           <li class="list-none px-2 py-8 text-center" role="presentation">
-            <p class="font-serif-italic text-[15px] text-zinc-500">Nothing in flight.</p>
-            <p class="mt-1 text-[12px] text-zinc-600">Add something above.</p>
+            <p class="font-serif-italic text-[15px] text-zinc-400">Nothing in flight.</p>
+            <p class="mt-1 text-[12px] text-zinc-400">Add something above.</p>
           </li>
         }
       </ul>
@@ -75,8 +75,12 @@ import { TaskStoreService } from '../../core/services/task-store.service';
           type="button"
           class="w-full rounded-md border border-white/8 bg-white/3 py-2 text-center font-mono text-[11px] uppercase tracking-wider text-zinc-400 transition-colors hover:border-white/12 hover:bg-white/5 hover:text-zinc-200"
           (click)="viewAllRequested.emit()"
+          aria-keyshortcuts="t"
         >
           View all
+          <kbd class="ml-1.5 rounded border border-white/10 px-1 text-zinc-400" aria-hidden="true"
+            >t</kbd
+          >
         </button>
       </footer>
     </section>
@@ -130,21 +134,21 @@ import { TaskStoreService } from '../../core/services/task-store.service';
         }
 
         <span
-          class="hidden shrink-0 rounded border px-1 py-0.5 font-mono text-[9px] uppercase tracking-wider sm:inline"
+          class="hidden shrink-0 rounded border px-1 py-0.5 font-mono text-[11px] uppercase tracking-wider sm:inline"
           [class]="kindClasses(task)"
         >
           {{ kindLabel(task) }}
         </span>
 
         @if (task.dueAt) {
-          <span class="hidden shrink-0 font-mono text-[10px] tabular-nums text-zinc-500 md:inline">
+          <span class="hidden shrink-0 font-mono text-[11px] tabular-nums text-zinc-400 md:inline">
             {{ task.dueAt | date: 'd MMM' }}
           </span>
         }
 
         <button
           type="button"
-          class="shrink-0 font-mono text-[11px] text-zinc-600 opacity-0 transition hover:text-red-300 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
+          class="shrink-0 font-mono text-[11px] text-zinc-400 opacity-0 transition hover:text-red-300 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
           (click)="remove(task.id)"
           [attr.aria-label]="'Delete: ' + task.title"
         >
@@ -221,7 +225,7 @@ export class RecentTasksPanelComponent {
 
   protected kindClasses(task: Task): string {
     if (task.status === 'done') {
-      return 'border-white/8 bg-white/3 text-zinc-600';
+      return 'border-white/8 bg-white/3 text-zinc-400';
     }
     if (task.kind === 'quick') {
       return 'border-emerald-400/25 bg-emerald-400/5 text-emerald-300';

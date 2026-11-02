@@ -13,14 +13,12 @@ import { BrowserSearchService } from '../../core/services/browser-search.service
 import { StorageService } from '../../core/services/storage.service';
 import { TaskStoreService } from '../../core/services/task-store.service';
 import { ActivityChartComponent } from '../../shared/ui/activity-chart.component';
-import { CHART_PALETTE } from '../../shared/ui/chart-registry';
 import { DataDialogComponent } from '../../shared/ui/data-dialog.component';
-import { LanguageDonutComponent } from '../../shared/ui/language-donut.component';
-import { MetricCardComponent } from '../../shared/ui/metric-card.component';
 import { UsageListComponent } from '../../shared/ui/usage-list.component';
 import { QuickSearchDialogComponent } from '../productivity/quick-search-dialog.component';
 import { RecentTasksPanelComponent } from '../productivity/recent-tasks-panel.component';
 import { TasksDialogComponent } from '../productivity/tasks-dialog.component';
+import { ConnectWakatimeComponent } from './components/connect-wakatime.component';
 import { DashboardSkeletonComponent } from './components/dashboard-skeleton.component';
 
 @Component({
@@ -30,12 +28,11 @@ import { DashboardSkeletonComponent } from './components/dashboard-skeleton.comp
     DecimalPipe,
     LowerCasePipe,
     NgOptimizedImage,
-    MetricCardComponent,
     ActivityChartComponent,
-    LanguageDonutComponent,
     UsageListComponent,
     DataDialogComponent,
     DashboardSkeletonComponent,
+    ConnectWakatimeComponent,
     TasksDialogComponent,
     QuickSearchDialogComponent,
     RecentTasksPanelComponent,
@@ -52,6 +49,7 @@ export class DashboardPageComponent {
   readonly autoRefreshIntervalMs = input(2 * 60 * 1000);
   readonly refreshRequested = output<void>();
   readonly settingsRequested = output<void>();
+  readonly credentialSubmitted = output<string>();
 
   private readonly storage = inject(StorageService);
   protected readonly store = inject(TaskStoreService);
@@ -62,6 +60,49 @@ export class DashboardPageComponent {
   protected readonly tasksOpen = signal(false);
 
   protected readonly activeDialog = signal<DialogKey | null>(null);
+  protected readonly focusTab = signal<'projects' | 'languages'>('projects');
+
+  /** Rarely-changing environment dimensions, condensed into one "setup" card. */
+  protected readonly setupRows = computed((): SetupRow[] => {
+    const data = this.dashboard();
+    if (!data) return [];
+
+    const rows: SetupRow[] = [
+      {
+        key: 'editors',
+        label: 'Editors',
+        items: data.editors.slice(0, 3),
+        total: data.editorsAll.length,
+        hidden: !data.visibility.editors,
+      },
+      {
+        key: 'operatingSystems',
+        label: 'OS',
+        items: data.operatingSystems.slice(0, 3),
+        total: data.operatingSystemsAll.length,
+        hidden: !data.visibility.operatingSystems,
+      },
+      {
+        key: 'categories',
+        label: 'Categories',
+        items: data.categories.slice(0, 3),
+        total: data.categoriesAll.length,
+        hidden: !data.visibility.categories,
+      },
+    ];
+
+    if (data.machines.length) {
+      rows.push({
+        key: 'machines',
+        label: 'Machines',
+        items: data.machines.slice(0, 3),
+        total: data.machinesAll.length,
+        hidden: false,
+      });
+    }
+
+    return rows;
+  });
 
   protected readonly activeDialogConfig = computed(() => {
     const key = this.activeDialog();
@@ -77,42 +118,36 @@ export class DashboardPageComponent {
 
   protected readonly dialogConfigs: Record<
     DialogKey,
-    { title: string; eyebrow: string; accent: string; showSwatch: boolean }
+    { title: string; eyebrow: string; showSwatch: boolean }
   > = {
     languages: {
       title: 'All languages',
       eyebrow: 'Language breakdown',
-      accent: '#34d399',
       showSwatch: true,
     },
     projects: {
       title: 'All projects',
       eyebrow: 'Project breakdown',
-      accent: '#34d399',
       showSwatch: false,
     },
     editors: {
       title: 'All editors',
       eyebrow: 'Editor usage',
-      accent: '#60a5fa',
       showSwatch: false,
     },
     operatingSystems: {
       title: 'All operating systems',
       eyebrow: 'OS usage',
-      accent: '#c084fc',
       showSwatch: false,
     },
     categories: {
       title: 'All categories',
       eyebrow: 'Activity categories',
-      accent: '#34d399',
       showSwatch: false,
     },
     machines: {
       title: 'All machines',
       eyebrow: 'Machine usage',
-      accent: '#fbbf24',
       showSwatch: false,
     },
   };
@@ -143,10 +178,6 @@ export class DashboardPageComponent {
 
   constructor() {
     void this.store.load();
-  }
-
-  protected legendColor(index: number): string {
-    return CHART_PALETTE[index % CHART_PALETTE.length];
   }
 
   protected openDialog(key: DialogKey): void {
@@ -228,6 +259,14 @@ export class DashboardPageComponent {
         return data.machinesAll;
     }
   }
+}
+
+interface SetupRow {
+  key: DialogKey;
+  label: string;
+  items: UsageItem[];
+  total: number;
+  hidden: boolean;
 }
 
 type DialogKey =

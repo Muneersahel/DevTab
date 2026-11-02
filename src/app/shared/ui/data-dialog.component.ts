@@ -43,11 +43,11 @@ import { UsageListComponent } from './usage-list.component';
             class="flex shrink-0 items-start justify-between gap-4 border-b border-white/6 bg-zinc-950/95 px-6 py-5"
           >
             <div class="min-w-0">
-              <p class="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+              <p class="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
                 {{ eyebrow() }}
               </p>
               <h2 class="mt-1 truncate text-base font-semibold text-zinc-50">{{ title() }}</h2>
-              <p class="mt-1 text-[12px] text-zinc-500">Showing all {{ items().length }} entries</p>
+              <p class="mt-1 text-[12px] text-zinc-400">Showing all {{ items().length }} entries</p>
             </div>
             <button
               type="button"

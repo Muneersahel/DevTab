@@ -2,6 +2,7 @@ import {
   ActivityDay,
   AiVsHumanStats,
   DashboardViewModel,
+  TodaySummary,
   UsageItem,
 } from '../models/dashboard.model';
 import { TimedUsage, WakaTimeStatsResponse } from '../models/wakatime-stats.model';
@@ -34,6 +35,12 @@ export function normalizeDashboard(
     (aggregated ? formatSeconds(aggregated.totalSeconds) : null) ||
     statsData?.human_readable_total ||
     formatSeconds(statsData?.total_seconds ?? 0);
+
+  const dailyAverageSeconds =
+    summaries?.daily_average?.seconds ??
+    (aggregated && aggregated.codingDays > 0
+      ? aggregated.totalSeconds / aggregated.codingDays
+      : (statsData?.daily_average ?? 0));
 
   const dailyAverage =
     summaries?.daily_average?.text ||
@@ -72,6 +79,7 @@ export function normalizeDashboard(
     totalTime,
     totalTimeIncludingOther,
     dailyAverage,
+    dailyAverageSeconds,
     rangeLabel: statsData?.human_readable_range || deriveRangeLabel(summaries) || 'Last 7 days',
     bestDay,
     topLanguage: languages[0] ?? null,
@@ -89,6 +97,11 @@ export function normalizeDashboard(
     machines: machines.slice(0, 4),
     machinesAll: machines,
     aiVsHuman,
+    today: summaries ? summarizeToday(summaries.data, dailyAverageSeconds) : null,
+    activeDays:
+      aggregated && summaries && summaries.data.length > 0
+        ? { active: aggregated.codingDays, total: summaries.data.length }
+        : null,
     activity: aggregated?.activity ?? [],
     activityUnavailable: summaries === null,
     visibility: {
@@ -307,6 +320,41 @@ function buildActivity(days: WakaTimeSummaryDay[]): ActivityDay[] {
       percentOfMax: Math.round((totalSeconds / max) * 100),
     };
   });
+}
+
+function summarizeToday(
+  days: WakaTimeSummaryDay[],
+  dailyAverageSeconds: number,
+): TodaySummary | null {
+  const day = days.at(-1);
+  if (!day) {
+    return null;
+  }
+
+  const seconds = day.grand_total?.total_seconds ?? 0;
+  const hasAverage = dailyAverageSeconds > 0;
+
+  return {
+    date: day.range.date,
+    time: day.grand_total?.text || formatSeconds(seconds),
+    percentOfAverage: hasAverage ? Math.round((seconds / dailyAverageSeconds) * 100) : null,
+    remainingToAverage:
+      hasAverage && seconds < dailyAverageSeconds
+        ? formatSeconds(dailyAverageSeconds - seconds)
+        : null,
+    topProject: topByTime(day.projects),
+    topLanguage: topByTime(day.languages),
+  };
+}
+
+function topByTime(items: TimedUsage[] | undefined): string | null {
+  let top: TimedUsage | null = null;
+  for (const item of items ?? []) {
+    if (item.total_seconds > 0 && (!top || item.total_seconds > top.total_seconds)) {
+      top = item;
+    }
+  }
+  return top?.name ?? null;
 }
 
 function normalizeAiVsHumanFromStats(data: WakaTimeStatsResponse['data']): AiVsHumanStats | null {

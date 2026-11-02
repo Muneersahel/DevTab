@@ -112,7 +112,7 @@ When running on `http://localhost:4200`, WakaTime API calls are sent through the
 
 6. Open a new tab. DevTab should replace Chrome's default new tab page.
 
-7. Click **Settings**, paste a WakaTime OAuth access token, and save.
+7. Paste a WakaTime OAuth access token into the **Connect WakaTime** screen (or **Settings**) and save.
 
 8. Confirm the dashboard loads. To test auth handling, save an invalid token and refresh; DevTab should show the reconnect state without raw API JSON.
 

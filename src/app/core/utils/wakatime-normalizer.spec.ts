@@ -14,6 +14,35 @@ describe('normalizeDashboard', () => {
     expect(dashboard.activity[4].percentOfMax).toBe(100);
     expect(dashboard.activityUnavailable).toBe(false);
     expect(dashboard.status.label).toBe('Synced');
+    expect(dashboard.activeDays).toEqual({ active: 6, total: 7 });
+    expect(dashboard.today).toEqual({
+      date: '2026-04-17',
+      time: '3 hrs 48 mins',
+      percentOfAverage: 148,
+      remainingToAverage: null,
+      topProject: null,
+      topLanguage: null,
+    });
+  });
+
+  it('summarises today against the daily average', () => {
+    const summaries = createSummariesResponse();
+    const today = summaries.data[summaries.data.length - 1];
+    today.grand_total!.total_seconds = 3600;
+    today.grand_total!.text = '1 hr';
+    today.projects = [
+      { name: 'Docs', total_seconds: 600, percent: 17, text: '10 mins' },
+      { name: 'DevTab', total_seconds: 3000, percent: 83, text: '50 mins' },
+    ].map((item) => ({ ...item, decimal: '0', digital: '0', hours: 0, minutes: 0 }));
+
+    const dashboard = normalizeDashboard(createStatsResponse(), summaries);
+
+    expect(dashboard.today).toMatchObject({
+      time: '1 hr',
+      percentOfAverage: 39,
+      remainingToAverage: '1h 34m',
+      topProject: 'DevTab',
+    });
   });
 
   it('marks activity unavailable when summaries are missing', () => {

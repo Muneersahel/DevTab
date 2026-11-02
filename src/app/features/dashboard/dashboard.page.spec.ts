@@ -18,8 +18,51 @@ describe('DashboardPageComponent', () => {
     const { fixture } = await render({ kind: 'ready', data });
 
     expect(fixture.nativeElement.textContent).toContain('18 hrs');
-    expect(fixture.nativeElement.textContent).toContain('TypeScript');
     expect(fixture.nativeElement.textContent).toContain('DevTab');
+    expect(fixture.nativeElement.querySelector('#today-heading').textContent).toContain('Today');
+    expect(fixture.nativeElement.textContent).toContain('3 hrs 48 mins');
+    expect(fixture.nativeElement.textContent).toContain('148%');
+    expect(fixture.nativeElement.textContent).toContain('VS Code');
+  });
+
+  it('switches the focus card between projects and languages', async () => {
+    const data = normalizeDashboard(createStatsResponse(), createSummariesResponse());
+    const { fixture } = await render({ kind: 'ready', data });
+    const focusCard = () =>
+      (fixture.nativeElement.querySelector('[aria-label="Breakdown"]') as HTMLElement).closest(
+        'article',
+      ) as HTMLElement;
+
+    expect(focusCard().textContent).toContain('DevTab');
+    expect(focusCard().textContent).not.toContain('TypeScript');
+
+    const languagesButton = Array.from(focusCard().querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'languages',
+    ) as HTMLButtonElement;
+    languagesButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(languagesButton.getAttribute('aria-pressed')).toBe('true');
+    expect(focusCard().textContent).toContain('TypeScript');
+  });
+
+  it('submits a pasted OAuth token from the reconnect screen', async () => {
+    const { fixture, componentRef } = await render({
+      kind: 'invalid_auth',
+      message: 'Unauthorized',
+    });
+    const submitted: string[] = [];
+    componentRef.instance.credentialSubmitted.subscribe((token) => submitted.push(token));
+
+    const input = fixture.nativeElement.querySelector('#connect-token') as HTMLInputElement;
+    input.value = '  oauth-token-123  ';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+
+    expect(fixture.nativeElement.textContent).toContain('Reconnect WakaTime');
+    expect(submitted).toEqual(['oauth-token-123']);
   });
 
   it('keeps debug details hidden until opened', async () => {

@@ -42,8 +42,8 @@
         <div class="flex min-w-0 items-baseline gap-2">
           <h1 class="text-[15px] font-semibold tracking-tight text-zinc-50">DevTab</h1>
           @if (dashboard(); as data) {
-            <span class="hidden font-mono text-[11px] text-zinc-500 sm:inline">
-              <span class="text-zinc-600">—</span> {{ data.rangeLabel }}
+            <span class="hidden font-mono text-[11px] text-zinc-400 sm:inline">
+              <span class="text-zinc-400">—</span> {{ data.rangeLabel }}
             </span>
           }
         </div>
@@ -73,7 +73,7 @@
           <span class="hidden sm:inline">Tasks</span>
           @if (store.openTaskCount() > 0) {
             <span
-              class="ml-0.5 inline-flex min-w-[1.125rem] items-center justify-center rounded-full bg-emerald-400 px-1 font-mono text-[10px] font-semibold leading-[1.1rem] text-neutral-950 tabular-nums shadow-[0_0_0_2px_#09090b]"
+              class="ml-0.5 inline-flex min-w-[1.125rem] items-center justify-center rounded-full bg-emerald-400 px-1 font-mono text-[11px] font-semibold leading-[1.1rem] text-neutral-950 tabular-nums shadow-[0_0_0_2px_#09090b]"
               aria-hidden="true"
             >
               {{ store.openTaskCount() > 99 ? '99+' : store.openTaskCount() }}
@@ -82,34 +82,6 @@
         </button>
 
         <div class="mx-1 h-5 w-px bg-white/6" aria-hidden="true"></div>
-
-        <button
-          class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
-          type="button"
-          (click)="searchOpen.set(true)"
-          aria-label="Search"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
-          <kbd
-            class="hidden rounded border border-white/10 px-1 font-mono text-[10px] text-zinc-500 lg:inline"
-            aria-hidden="true"
-          >
-            ⌘K
-          </kbd>
-        </button>
 
         <button
           class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] text-zinc-400 hover:bg-white/5 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -162,13 +134,13 @@
 
       <button
         type="button"
-        class="col-span-2 row-start-2 flex w-full max-w-xl items-center justify-between gap-3 rounded-md border border-white/8 bg-white/3 px-3 py-2 text-left text-[13px] text-zinc-500 transition-colors hover:border-white/12 hover:bg-white/5 hover:text-zinc-200 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:mx-auto lg:w-full"
+        class="col-span-2 row-start-2 flex w-full max-w-xl items-center justify-between gap-3 rounded-md border border-white/8 bg-white/3 px-3 py-2 text-left text-[13px] text-zinc-400 transition-colors hover:border-white/12 hover:bg-white/5 hover:text-zinc-200 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:mx-auto lg:w-full"
         (click)="searchOpen.set(true)"
-        aria-label="Open search. Shortcut Command+K."
+        aria-label="Search the web. Shortcut Command+K."
       >
-        <span class="truncate">Search or capture a task…</span>
+        <span class="truncate">Search the web…</span>
         <kbd
-          class="hidden shrink-0 rounded border border-white/10 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 sm:inline"
+          class="hidden shrink-0 rounded border border-white/10 px-1.5 py-0.5 font-mono text-[11px] text-zinc-400 sm:inline"
           aria-hidden="true"
           >⌘K</kbd
         >
@@ -184,27 +156,12 @@
     @if (dashboard(); as data) {
       <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_min(100%,20rem)] lg:items-start xl:gap-10">
         <div class="min-w-0">
-          <!--
-        Editorial lede: mono section marker + serif-italic kicker. Gives
-        the instrument panel a distinctive voice without slipping into
-        "dashboard template" territory.
-      -->
-          <section class="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-400/90">
-                / coding report
-              </p>
-              <h2
-                class="mt-2 max-w-2xl text-[28px] font-semibold leading-tight tracking-tight text-zinc-50"
-              >
-                <span class="text-zinc-400">You coded</span>
-                <span class="font-serif-italic text-emerald-300">{{ data.totalTime }}</span>
-                <span class="text-zinc-400">over the</span>
-                {{ data.rangeLabel | lowercase }}.
-              </h2>
-            </div>
+          <section class="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-300">
+              / coding report
+            </p>
             <dl
-              class="flex items-center gap-x-5 gap-y-1 font-mono text-[11px] text-zinc-500"
+              class="flex flex-wrap items-center gap-x-5 gap-y-1 font-mono text-[11px] text-zinc-400"
               aria-label="Report meta"
             >
               <div class="flex items-center gap-1.5">
@@ -215,16 +172,29 @@
                   aria-hidden="true"
                 ></span>
                 <dt class="sr-only">Status</dt>
-                <dd class="text-zinc-400">{{ data.status.label }}</dd>
+                <dd class="text-zinc-300">{{ data.status.label }}</dd>
               </div>
               <div class="flex items-center gap-1.5">
-                <dt class="text-zinc-600">refreshed</dt>
-                <dd class="tabular-nums text-zinc-400">{{ data.fetchedAt | date: 'HH:mm' }}</dd>
+                <dt>refreshed</dt>
+                <dd class="tabular-nums text-zinc-300">{{ data.fetchedAt | date: 'HH:mm' }}</dd>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <dt class="sr-only">Auto refresh</dt>
+                <dd>
+                  <button
+                    type="button"
+                    class="rounded px-1 text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+                    (click)="settingsRequested.emit()"
+                    [attr.aria-label]="'Auto refresh ' + autoRefreshLabel() + '. Open settings'"
+                  >
+                    auto <span class="tabular-nums text-zinc-300">{{ autoRefreshLabel() }}</span>
+                  </button>
+                </dd>
               </div>
               @if (data.cacheUpdatedAt) {
                 <div class="hidden items-center gap-1.5 md:flex">
-                  <dt class="text-zinc-600">cache</dt>
-                  <dd class="tabular-nums text-zinc-400">
+                  <dt>cache</dt>
+                  <dd class="tabular-nums text-zinc-300">
                     {{ data.cacheUpdatedAt | date: 'd MMM HH:mm' }}
                   </dd>
                 </div>
@@ -232,68 +202,155 @@
             </dl>
           </section>
 
-          <!-- Primary metric grid -->
-          <section class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4" aria-label="Summary metrics">
-            <dt-metric-card
-              tone="accent"
-              label="Total coded"
-              [value]="data.totalTime"
-              [detail]="
-                data.totalTimeIncludingOther
-                  ? 'incl. other · ' + data.totalTimeIncludingOther
-                  : data.rangeLabel
-              "
-              [caption]="data.bestDay ? 'peak · ' + data.bestDay.text : ''"
-            />
-            <dt-metric-card
-              label="Daily average"
-              [value]="data.dailyAverage"
-              detail="across tracked days"
-            />
-            <dt-metric-card
-              label="Top language"
-              [value]="data.topLanguage?.name ?? '—'"
-              [detail]="data.topLanguage?.time ?? 'no data yet'"
-              [caption]="
-                data.topLanguage ? (data.topLanguage.percent | number: '1.0-0') + '% of total' : ''
-              "
-            />
-            <dt-metric-card
-              label="Top project"
-              [value]="data.topProject?.name ?? '—'"
-              [detail]="data.topProject?.time ?? 'no data yet'"
-              [caption]="
-                data.topProject ? (data.topProject.percent | number: '1.0-0') + '% of total' : ''
-              "
-            />
-          </section>
+          @if (data.today; as today) {
+            <section
+              class="relative overflow-hidden rounded-md border border-emerald-400/25 bg-neutral-950 p-5"
+              aria-labelledby="today-heading"
+            >
+              <div
+                class="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-emerald-400/60 to-transparent"
+                aria-hidden="true"
+              ></div>
+              <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+                <div class="min-w-0 flex-1 basis-72">
+                  <h2
+                    id="today-heading"
+                    class="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-300"
+                  >
+                    Today <span class="text-zinc-400">· {{ today.date | date: 'EEE d MMM' }}</span>
+                  </h2>
+                  <p
+                    class="mt-2 font-mono text-[40px] font-semibold leading-none tracking-tight tabular-nums text-zinc-50"
+                  >
+                    {{ today.time }}
+                  </p>
+                  @if (today.percentOfAverage !== null) {
+                    <div class="mt-4 h-1.5 max-w-md rounded-full bg-white/6" aria-hidden="true">
+                      <div
+                        class="h-full rounded-full bg-emerald-400"
+                        [style.width.%]="
+                          today.percentOfAverage > 100 ? 100 : today.percentOfAverage
+                        "
+                      ></div>
+                    </div>
+                    <p class="mt-2 text-[13px] text-zinc-400">
+                      <span class="font-mono tabular-nums text-zinc-200"
+                        >{{ today.percentOfAverage }}%</span
+                      >
+                      of your
+                      <span class="font-mono tabular-nums text-zinc-200">{{
+                        data.dailyAverage
+                      }}</span>
+                      daily average
+                      @if (today.remainingToAverage) {
+                        <span aria-hidden="true">·</span>
+                        <span class="font-mono tabular-nums text-zinc-200">{{
+                          today.remainingToAverage
+                        }}</span>
+                        to go
+                      }
+                    </p>
+                  }
+                </div>
+                @if (today.topProject || today.topLanguage) {
+                  <dl class="grid gap-1.5 text-[13px] text-zinc-400 sm:text-right">
+                    @if (today.topProject) {
+                      <div>
+                        <dt class="inline">focus</dt>
+                        <dd class="ml-1 inline font-medium text-zinc-100">
+                          {{ today.topProject }}
+                        </dd>
+                      </div>
+                    }
+                    @if (today.topLanguage) {
+                      <div>
+                        <dt class="inline">mostly</dt>
+                        <dd class="ml-1 inline font-medium text-zinc-100">
+                          {{ today.topLanguage }}
+                        </dd>
+                      </div>
+                    }
+                  </dl>
+                }
+              </div>
+            </section>
+          }
 
-          <!-- Activity + Languages: core visualizations, side by side on desktop -->
+          <dl
+            class="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-white/8 bg-white/6 sm:grid-cols-4"
+            aria-label="Summary metrics"
+          >
+            <div class="bg-neutral-950 px-4 py-3">
+              <dt class="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-400">
+                {{ data.rangeLabel }}
+              </dt>
+              <dd
+                class="mt-1 font-mono text-[20px] font-semibold tabular-nums text-zinc-50"
+                [title]="
+                  data.totalTimeIncludingOther
+                    ? 'Including other languages: ' + data.totalTimeIncludingOther
+                    : data.totalTime
+                "
+              >
+                {{ data.totalTime }}
+              </dd>
+            </div>
+            <div class="bg-neutral-950 px-4 py-3">
+              <dt class="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-400">
+                Daily avg
+              </dt>
+              <dd class="mt-1 font-mono text-[20px] font-semibold tabular-nums text-zinc-50">
+                {{ data.dailyAverage }}
+              </dd>
+            </div>
+            <div class="bg-neutral-950 px-4 py-3">
+              <dt class="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-400">
+                Peak
+                @if (data.bestDay) {
+                  <span>· {{ data.bestDay.date | date: 'EEE' }}</span>
+                }
+              </dt>
+              <dd class="mt-1 font-mono text-[20px] font-semibold tabular-nums text-zinc-50">
+                {{ data.bestDay?.text ?? '—' }}
+              </dd>
+            </div>
+            <div class="bg-neutral-950 px-4 py-3">
+              <dt class="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-400">
+                Active days
+              </dt>
+              <dd class="mt-1 font-mono text-[20px] font-semibold tabular-nums text-zinc-50">
+                @if (data.activeDays; as days) {
+                  {{ days.active }}<span class="text-zinc-400">/{{ days.total }}</span>
+                } @else {
+                  —
+                }
+              </dd>
+            </div>
+          </dl>
+
           <section
-            class="mt-4 grid items-stretch gap-3 lg:grid-cols-3"
+            class="mt-4 grid items-stretch gap-3 lg:grid-cols-5"
             aria-label="Visual analytics"
           >
             <article
-              class="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-md border border-white/8 bg-neutral-950 p-5 lg:col-span-2"
+              class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-md border border-white/8 bg-neutral-950 p-5 lg:col-span-3"
             >
-              <header class="shrink-0 flex items-baseline justify-between gap-3">
+              <header class="flex shrink-0 items-baseline justify-between gap-3">
                 <div>
-                  <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+                  <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-400">
                     / activity
                   </p>
-                  <h3 class="mt-1 text-[15px] font-semibold text-zinc-100">
-                    Coding minutes per day
-                  </h3>
+                  <h3 class="mt-1 text-[15px] font-semibold text-zinc-100">Coding time per day</h3>
                 </div>
-                @if (data.bestDay) {
-                  <div class="text-right">
-                    <p class="font-mono text-[10px] uppercase tracking-wider text-zinc-600">peak</p>
-                    <p
-                      class="mt-0.5 font-mono text-[13px] font-medium tabular-nums text-emerald-300"
-                    >
-                      {{ data.bestDay.text }}
-                    </p>
-                  </div>
+                @if (data.dailyAverageSeconds > 0 && data.activity.length) {
+                  <p class="flex items-center gap-2 font-mono text-[11px] text-zinc-400">
+                    <span
+                      class="w-4 border-t border-dashed border-zinc-300"
+                      aria-hidden="true"
+                    ></span>
+                    avg
+                    <span class="tabular-nums text-zinc-200">{{ data.dailyAverage }}</span>
+                  </p>
                 }
               </header>
 
@@ -304,452 +361,229 @@
                   Daily activity is temporarily unavailable. Summary stats are still current.
                 </p>
               } @else if (data.activity.length) {
-                <div class="mt-4 flex min-h-[240px] flex-1 flex-col">
+                <div class="mt-4 flex min-h-[220px] flex-1 flex-col">
                   <div class="min-h-0 flex-1">
-                    <dt-activity-chart [data]="data.activity" />
+                    <dt-activity-chart
+                      [data]="data.activity"
+                      [averageSeconds]="data.dailyAverageSeconds"
+                    />
                   </div>
                 </div>
               } @else if (!data.visibility.codingActivity) {
-                <p class="mt-5 flex-1 text-[13px] text-zinc-500">
+                <p class="mt-5 flex-1 text-[13px] text-zinc-400">
                   Coding activity is hidden on your WakaTime profile.
                 </p>
               } @else {
-                <p class="mt-5 flex-1 text-[13px] text-zinc-500">No activity recorded yet.</p>
+                <p class="mt-5 flex-1 text-[13px] text-zinc-400">No activity recorded yet.</p>
               }
             </article>
 
             <article
-              class="flex h-full min-h-0 min-w-0 flex-col rounded-md border border-white/8 bg-neutral-950 px-4 py-5 sm:px-5"
+              class="flex h-full min-h-0 min-w-0 flex-col rounded-md border border-white/8 bg-neutral-950 p-5 lg:col-span-2"
             >
-              <header class="flex items-start justify-between gap-3">
+              <header class="flex flex-wrap items-center justify-between gap-3">
                 <div class="min-w-0">
-                  <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-                    / languages
+                  <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-400">
+                    / focus
                   </p>
-                  <h3 class="mt-1 text-[15px] font-semibold text-zinc-100">Mix</h3>
+                  <h3 class="mt-1 text-[15px] font-semibold text-zinc-100">Where time went</h3>
                 </div>
-                @if (data.languagesAll.length > data.languages.length) {
+                <div
+                  class="flex rounded-md border border-white/8 p-0.5 font-mono text-[11px]"
+                  role="group"
+                  aria-label="Breakdown"
+                >
                   <button
                     type="button"
-                    class="shrink-0 font-mono text-[11px] text-zinc-500 hover:text-zinc-200"
-                    (click)="openDialog('languages')"
+                    class="rounded px-2 py-1 text-zinc-400 hover:text-zinc-100"
+                    [class.bg-white/8]="focusTab() === 'projects'"
+                    [class.text-zinc-50]="focusTab() === 'projects'"
+                    [attr.aria-pressed]="focusTab() === 'projects'"
+                    (click)="focusTab.set('projects')"
                   >
-                    all {{ data.languagesAll.length }} →
+                    projects
                   </button>
-                }
+                  <button
+                    type="button"
+                    class="rounded px-2 py-1 text-zinc-400 hover:text-zinc-100"
+                    [class.bg-white/8]="focusTab() === 'languages'"
+                    [class.text-zinc-50]="focusTab() === 'languages'"
+                    [attr.aria-pressed]="focusTab() === 'languages'"
+                    (click)="focusTab.set('languages')"
+                  >
+                    languages
+                  </button>
+                </div>
               </header>
 
-              @if (data.languages.length) {
-                <div
-                  class="mt-5 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-5 lg:min-h-[200px]"
-                >
-                  <!-- Stacked: narrow third column cannot fit donut + legend side-by-side without clip -->
-                  <div
-                    class="relative aspect-square w-[min(100%,10.5rem)] shrink-0 sm:w-44 sm:max-w-[min(100%,11rem)]"
-                  >
-                    <div class="absolute inset-1">
-                      <dt-language-donut [data]="data.languages" />
-                    </div>
-                    @if (data.topLanguage) {
-                      <div
-                        class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-2 text-center"
-                      >
-                        <p
-                          class="max-w-30 truncate text-[14px] font-semibold leading-tight text-zinc-100 sm:text-[15px]"
-                          [title]="data.topLanguage.name"
-                        >
-                          {{ data.topLanguage.name }}
-                        </p>
-                        <p
-                          class="mt-1 font-mono text-[11px] tabular-nums text-zinc-500 sm:text-[12px]"
-                        >
-                          {{ data.topLanguage.percent | number: '1.0-0' }}%
-                        </p>
-                      </div>
-                    }
-                  </div>
+              <div class="mt-4 min-h-0 flex-1">
+                @if (focusTab() === 'projects') {
+                  <dt-usage-list
+                    [items]="data.projects"
+                    [showSwatch]="false"
+                    emptyMessage="No project data yet."
+                  />
+                } @else {
+                  <dt-usage-list
+                    [items]="data.languages"
+                    [showSwatch]="false"
+                    [emptyMessage]="
+                      data.visibility.languages
+                        ? 'No language data yet.'
+                        : 'Language usage is hidden on your WakaTime profile.'
+                    "
+                  />
+                }
+              </div>
 
-                  <ul
-                    class="min-w-0 w-full max-w-sm divide-y divide-white/6 text-[13px] sm:max-w-none"
-                    aria-label="Top languages"
-                  >
-                    @for (lang of data.languages; track lang.name; let i = $index) {
-                      <li
-                        class="grid grid-cols-[0.5rem_minmax(0,1fr)_2.75rem] items-center gap-x-2.5 py-2.5 first:pt-0 last:pb-0"
-                      >
-                        <span
-                          class="h-2 w-2 shrink-0 self-center rounded-full"
-                          [style.background]="legendColor(i)"
-                          aria-hidden="true"
-                        ></span>
-                        <span
-                          class="min-w-0 truncate font-medium leading-snug text-zinc-200"
-                          [title]="lang.name"
-                          >{{ lang.name }}</span
-                        >
-                        <span
-                          class="shrink-0 text-right font-mono text-[11px] tabular-nums text-zinc-400 sm:text-[12px]"
-                        >
-                          {{ lang.percent | number: '1.0-0' }}%
-                        </span>
-                      </li>
-                    }
-                  </ul>
-                </div>
-              } @else if (!data.visibility.languages) {
-                <p class="mt-5 flex-1 text-[13px] text-zinc-500">
-                  Language usage is hidden on your WakaTime profile.
-                </p>
-              } @else {
-                <p class="mt-5 flex-1 text-[13px] text-zinc-500">No language data yet.</p>
+              @if (focusTab() === 'projects' && data.projectsAll.length > data.projects.length) {
+                <button
+                  type="button"
+                  class="mt-4 self-start font-mono text-[11px] text-zinc-400 hover:text-zinc-100"
+                  (click)="openDialog('projects')"
+                >
+                  all {{ data.projectsAll.length }} projects →
+                </button>
+              } @else if (
+                focusTab() === 'languages' && data.languagesAll.length > data.languages.length
+              ) {
+                <button
+                  type="button"
+                  class="mt-4 self-start font-mono text-[11px] text-zinc-400 hover:text-zinc-100"
+                  (click)="openDialog('languages')"
+                >
+                  all {{ data.languagesAll.length }} languages →
+                </button>
               }
             </article>
           </section>
 
-          <!-- AI vs human, always visible when present -->
           @if (data.aiVsHuman; as ai) {
             <section
-              class="mt-4 overflow-hidden rounded-md border border-white/8 bg-neutral-950 p-5"
-              aria-label="AI vs human"
+              class="mt-4 rounded-md border border-white/8 bg-neutral-950 px-5 py-4"
+              aria-labelledby="ai-heading"
             >
-              <header class="flex items-baseline justify-between gap-3">
-                <div>
-                  <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-                    / composition
-                  </p>
-                  <h3 class="mt-1 text-[15px] font-semibold text-zinc-100">AI vs human</h3>
-                </div>
-                <div class="text-right">
-                  <p class="font-mono text-[10px] uppercase tracking-wider text-emerald-400/80">
-                    ai share
-                  </p>
-                  <p
-                    class="mt-0.5 font-mono text-[20px] font-semibold leading-none tabular-nums text-emerald-300"
-                  >
-                    {{ ai.aiSharePercent }}%
-                  </p>
-                </div>
-              </header>
-
-              <div class="mt-5">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h3
+                  id="ai-heading"
+                  class="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-400"
+                >
+                  / ai vs human
+                </h3>
                 <div
-                  class="flex h-1.5 overflow-hidden rounded-full bg-white/4"
+                  class="flex h-1.5 min-w-32 flex-1 overflow-hidden rounded-full bg-white/4"
                   role="img"
                   [attr.aria-label]="
                     'AI ' +
                     ai.aiSharePercent +
-                    '% of additions, human ' +
+                    '% of added lines, human ' +
                     (100 - ai.aiSharePercent) +
                     '%'
                   "
                 >
                   <span
-                    class="block h-full bg-emerald-400"
+                    class="block h-full bg-violet-400"
                     [style.width.%]="ai.aiSharePercent"
                   ></span>
                   <span class="block h-full flex-1 bg-sky-400"></span>
                 </div>
-                <div
-                  class="mt-2 flex items-center justify-between font-mono text-[11px] text-zinc-500"
-                >
-                  <span class="inline-flex items-center gap-1.5">
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
-                    ai · <span class="tabular-nums text-zinc-300">{{ ai.aiSharePercent }}%</span>
-                  </span>
-                  <span class="inline-flex items-center gap-1.5">
-                    human ·
-                    <span class="tabular-nums text-zinc-300">{{ 100 - ai.aiSharePercent }}%</span>
-                    <span class="h-1.5 w-1.5 rounded-full bg-sky-400" aria-hidden="true"></span>
-                  </span>
-                </div>
+                <p class="font-mono text-[12px] tabular-nums" aria-hidden="true">
+                  <span class="text-violet-300">ai {{ ai.aiSharePercent }}%</span>
+                  <span class="text-zinc-400"> · </span>
+                  <span class="text-sky-300">human {{ 100 - ai.aiSharePercent }}%</span>
+                </p>
               </div>
-
-              <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                <div class="rounded border border-emerald-400/15 bg-emerald-400/3 p-4">
-                  <p
-                    class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-emerald-400"
-                  >
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
-                    ai
-                  </p>
-                  <p class="mt-2 font-mono text-[18px] font-semibold tabular-nums text-emerald-300">
-                    +{{ ai.aiAdditions | number }}
-                    <span class="text-[14px] font-normal text-zinc-500">
-                      / −{{ ai.aiDeletions | number }}
-                    </span>
-                  </p>
-                  <p class="mt-1 font-mono text-[10px] uppercase tracking-wider text-zinc-600">
-                    lines added · removed
-                  </p>
-                </div>
-
-                <div class="rounded border border-sky-400/15 bg-sky-400/3 p-4">
-                  <p
-                    class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-sky-300"
-                  >
-                    <span class="h-1.5 w-1.5 rounded-full bg-sky-400" aria-hidden="true"></span>
-                    human
-                  </p>
-                  <p class="mt-2 font-mono text-[18px] font-semibold tabular-nums text-sky-300">
-                    +{{ ai.humanAdditions | number }}
-                    <span class="text-[14px] font-normal text-zinc-500">
-                      / −{{ ai.humanDeletions | number }}
-                    </span>
-                  </p>
-                  <p class="mt-1 font-mono text-[10px] uppercase tracking-wider text-zinc-600">
-                    lines added · removed
-                  </p>
-                </div>
-              </div>
-
-              @if (ai.aiInputTokens || ai.aiOutputTokens) {
-                <div
-                  class="mt-4 grid gap-0 overflow-hidden rounded border border-white/6 sm:grid-cols-2 sm:divide-x sm:divide-white/6"
+              <details class="mt-3">
+                <summary
+                  class="cursor-pointer font-mono text-[11px] text-zinc-400 hover:text-zinc-100"
                 >
-                  <div class="flex items-baseline justify-between gap-3 bg-white/2 px-4 py-3">
-                    <span class="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
-                      ai input tokens
-                    </span>
-                    <span class="font-mono text-[14px] font-semibold tabular-nums text-zinc-200">
-                      {{ ai.aiInputTokens | number }}
-                    </span>
+                  lines &amp; tokens
+                </summary>
+                <dl class="mt-3 grid gap-x-8 gap-y-2 font-mono text-[12px] sm:grid-cols-2">
+                  <div class="flex justify-between gap-3">
+                    <dt class="text-zinc-400">ai lines added / removed</dt>
+                    <dd class="tabular-nums text-violet-300">
+                      +{{ ai.aiAdditions | number }} / −{{ ai.aiDeletions | number }}
+                    </dd>
                   </div>
-                  <div class="flex items-baseline justify-between gap-3 bg-white/2 px-4 py-3">
-                    <span class="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
-                      ai output tokens
-                    </span>
-                    <span class="font-mono text-[14px] font-semibold tabular-nums text-zinc-200">
-                      {{ ai.aiOutputTokens | number }}
-                    </span>
+                  <div class="flex justify-between gap-3">
+                    <dt class="text-zinc-400">human lines added / removed</dt>
+                    <dd class="tabular-nums text-sky-300">
+                      +{{ ai.humanAdditions | number }} / −{{ ai.humanDeletions | number }}
+                    </dd>
                   </div>
-                </div>
-              }
+                  @if (ai.aiInputTokens || ai.aiOutputTokens) {
+                    <div class="flex justify-between gap-3">
+                      <dt class="text-zinc-400">ai input tokens</dt>
+                      <dd class="tabular-nums text-zinc-200">{{ ai.aiInputTokens | number }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <dt class="text-zinc-400">ai output tokens</dt>
+                      <dd class="tabular-nums text-zinc-200">{{ ai.aiOutputTokens | number }}</dd>
+                    </div>
+                  }
+                </dl>
+              </details>
             </section>
           }
 
-          <!-- Projects: its own full-width card -->
-          <section class="mt-4" aria-label="Projects">
-            <article class="rounded-md border border-white/8 bg-neutral-950 p-5">
-              <header class="flex items-baseline justify-between gap-3">
-                <div>
-                  <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-                    / projects
-                  </p>
-                  <h3 class="mt-1 text-[15px] font-semibold text-zinc-100">Where time went</h3>
-                </div>
-                @if (data.projectsAll.length > data.projects.length) {
-                  <button
-                    type="button"
-                    class="font-mono text-[11px] text-zinc-500 hover:text-zinc-200"
-                    (click)="openDialog('projects')"
-                  >
-                    all {{ data.projectsAll.length }} →
-                  </button>
-                }
-              </header>
-              <div class="mt-4">
-                <dt-usage-list [items]="data.projects" emptyMessage="No project data yet." />
-              </div>
-            </article>
-          </section>
-
-          <!--
-        Environment: one card per dimension so each breathes. A single
-        responsive grid keeps heights aligned; small accent dot in the
-        eyebrow preserves the color coding that used to live in the
-        combined card.
-      -->
-          <!-- Always max 2 columns: with the tasks sidebar, four-up stays too narrow on common wide monitors. -->
           <section
-            class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2"
-            aria-label="Environment breakdown"
+            class="mt-4 rounded-md border border-white/8 bg-neutral-950 px-5 py-4"
+            aria-labelledby="setup-heading"
           >
-            <article
-              class="flex min-w-0 flex-col rounded-md border border-white/8 bg-neutral-950 px-4 py-4 sm:px-5 sm:py-5"
+            <h3
+              id="setup-heading"
+              class="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-400"
             >
-              <header class="flex shrink-0 items-start justify-between gap-3">
-                <div class="min-w-0">
-                  <p
-                    class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-sky-300"
-                  >
-                    <span
-                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-sky-400"
-                      aria-hidden="true"
-                    ></span>
-                    / editors
-                  </p>
-                  <h3
-                    class="mt-1 text-[14px] font-semibold leading-snug text-zinc-100 sm:text-[15px]"
-                  >
-                    Where you wrote code
-                  </h3>
-                </div>
-                @if (data.editorsAll.length > data.editors.length) {
-                  <button
-                    type="button"
-                    class="shrink-0 font-mono text-[11px] text-zinc-500 hover:text-zinc-200"
-                    (click)="openDialog('editors')"
-                  >
-                    all {{ data.editorsAll.length }} →
-                  </button>
-                }
-              </header>
-              <div class="mt-3 min-h-0 flex-1 sm:mt-4">
-                <dt-usage-list
-                  [items]="data.editors"
-                  [showSwatch]="false"
-                  accent="#60a5fa"
-                  [emptyMessage]="
-                    data.visibility.editors
-                      ? 'No editor data yet.'
-                      : 'Hidden on your WakaTime profile.'
-                  "
-                />
-              </div>
-            </article>
-
-            <article
-              class="flex min-w-0 flex-col rounded-md border border-white/8 bg-neutral-950 px-4 py-4 sm:px-5 sm:py-5"
-            >
-              <header class="flex shrink-0 items-start justify-between gap-3">
-                <div class="min-w-0">
-                  <p
-                    class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-violet-300"
-                  >
-                    <span
-                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400"
-                      aria-hidden="true"
-                    ></span>
-                    / os
-                  </p>
-                  <h3
-                    class="mt-1 text-[14px] font-semibold leading-snug text-zinc-100 sm:text-[15px]"
-                  >
-                    Operating systems
-                  </h3>
-                </div>
-                @if (data.operatingSystemsAll.length > data.operatingSystems.length) {
-                  <button
-                    type="button"
-                    class="shrink-0 font-mono text-[11px] text-zinc-500 hover:text-zinc-200"
-                    (click)="openDialog('operatingSystems')"
-                  >
-                    all {{ data.operatingSystemsAll.length }} →
-                  </button>
-                }
-              </header>
-              <div class="mt-3 min-h-0 flex-1 sm:mt-4">
-                <dt-usage-list
-                  [items]="data.operatingSystems"
-                  [showSwatch]="false"
-                  accent="#c084fc"
-                  [emptyMessage]="
-                    data.visibility.operatingSystems
-                      ? 'No OS data yet.'
-                      : 'Hidden on your WakaTime profile.'
-                  "
-                />
-              </div>
-            </article>
-
-            <article
-              class="flex min-w-0 flex-col rounded-md border border-white/8 bg-neutral-950 px-4 py-4 sm:px-5 sm:py-5"
-            >
-              <header class="flex shrink-0 items-start justify-between gap-3">
-                <div class="min-w-0">
-                  <p
-                    class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-300"
-                  >
-                    <span
-                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400"
-                      aria-hidden="true"
-                    ></span>
-                    / categories
-                  </p>
-                  <h3
-                    class="mt-1 text-[14px] font-semibold leading-snug text-zinc-100 sm:text-[15px]"
-                  >
-                    How time broke down
-                  </h3>
-                </div>
-                @if (data.categoriesAll.length > data.categories.length) {
-                  <button
-                    type="button"
-                    class="shrink-0 font-mono text-[11px] text-zinc-500 hover:text-zinc-200"
-                    (click)="openDialog('categories')"
-                  >
-                    all {{ data.categoriesAll.length }} →
-                  </button>
-                }
-              </header>
-              <div class="mt-3 min-h-0 flex-1 sm:mt-4">
-                <dt-usage-list
-                  [items]="data.categories"
-                  [showSwatch]="false"
-                  accent="#34d399"
-                  [emptyMessage]="
-                    data.visibility.categories
-                      ? 'No category data yet.'
-                      : 'Hidden on your WakaTime profile.'
-                  "
-                />
-              </div>
-            </article>
-
-            @if (data.machines.length) {
-              <article
-                class="flex min-w-0 flex-col rounded-md border border-white/8 bg-neutral-950 px-4 py-4 sm:px-5 sm:py-5"
-              >
-                <header class="flex shrink-0 items-start justify-between gap-3">
-                  <div class="min-w-0">
-                    <p
-                      class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-amber-300"
-                    >
+              / setup
+            </h3>
+            <dl class="mt-3 grid gap-x-4 gap-y-3 sm:grid-cols-[6.5rem_minmax(0,1fr)]">
+              @for (row of setupRows(); track row.key) {
+                <dt class="text-[13px] text-zinc-400 sm:py-1">{{ row.label }}</dt>
+                <dd class="flex min-w-0 flex-wrap items-center gap-1.5">
+                  @if (row.hidden) {
+                    <span class="text-[13px] text-zinc-400">Hidden on your WakaTime profile.</span>
+                  } @else {
+                    @for (item of row.items; track item.name) {
                       <span
-                        class="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
-                        aria-hidden="true"
-                      ></span>
-                      / machines
-                    </p>
-                    <h3
-                      class="mt-1 text-[14px] font-semibold leading-snug text-zinc-100 sm:text-[15px]"
-                    >
-                      Where it ran
-                    </h3>
-                  </div>
-                  @if (data.machinesAll.length > data.machines.length) {
-                    <button
-                      type="button"
-                      class="shrink-0 font-mono text-[11px] text-zinc-500 hover:text-zinc-200"
-                      (click)="openDialog('machines')"
-                    >
-                      all {{ data.machinesAll.length }} →
-                    </button>
+                        class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/8 px-2.5 py-1 text-[12px] text-zinc-200"
+                        [title]="item.name + ' · ' + item.time"
+                      >
+                        <span class="truncate">{{ item.name }}</span>
+                        <span class="font-mono tabular-nums text-zinc-400"
+                          >{{ item.percent | number: '1.0-0' }}%</span
+                        >
+                      </span>
+                    } @empty {
+                      <span class="text-[13px] text-zinc-400">No data yet.</span>
+                    }
+                    @if (row.total > row.items.length) {
+                      <button
+                        type="button"
+                        class="rounded-full px-2 py-1 font-mono text-[11px] text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+                        (click)="openDialog(row.key)"
+                        [attr.aria-label]="'All ' + row.total + ' ' + (row.label | lowercase)"
+                      >
+                        all {{ row.total }} →
+                      </button>
+                    }
                   }
-                </header>
-                <div class="mt-3 min-h-0 flex-1 sm:mt-4">
-                  <dt-usage-list
-                    [items]="data.machines"
-                    [showSwatch]="false"
-                    accent="#fbbf24"
-                    emptyMessage="No machine data yet."
-                  />
-                </div>
-              </article>
-            }
+                </dd>
+              }
+            </dl>
           </section>
 
           <footer
-            class="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/6 py-4 font-mono text-[11px] text-zinc-600"
+            class="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/6 py-4 font-mono text-[11px] text-zinc-400"
           >
             <p>
-              devtab · <span class="text-zinc-500">{{ data.rangeLabel | lowercase }}</span>
+              devtab · <span class="text-zinc-400">{{ data.rangeLabel | lowercase }}</span>
             </p>
             <p>
               press
-              <kbd class="rounded border border-white/10 px-1 py-0.5 text-zinc-500">t</kbd>
+              <kbd class="rounded border border-white/10 px-1 py-0.5 text-zinc-400">t</kbd>
               for tasks ·
-              <kbd class="rounded border border-white/10 px-1 py-0.5 text-zinc-500">⌘K</kbd>
+              <kbd class="rounded border border-white/10 px-1 py-0.5 text-zinc-400">⌘K</kbd>
               to search
             </p>
           </footer>
@@ -767,75 +601,17 @@
       <section class="grid min-h-[60vh] place-items-center py-10">
         @switch (state().kind) {
           @case ('missing_auth') {
-            <section
-              class="w-full max-w-md rounded-md border border-white/8 bg-neutral-950 p-8 text-center"
-            >
-              <div
-                class="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-emerald-400/25 bg-emerald-400/8 text-emerald-300"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 2v6" />
-                  <path d="M12 22v-6" />
-                  <path d="m4.93 4.93 4.24 4.24" />
-                  <path d="m14.83 14.83 4.24 4.24" />
-                  <path d="M2 12h6" />
-                  <path d="M22 12h-6" />
-                </svg>
-              </div>
-              <p class="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-400/90">
-                / first run
-              </p>
-              <h2 class="mt-1 text-xl font-semibold tracking-tight text-zinc-50">
-                Connect WakaTime
-              </h2>
-              <p class="mt-2 text-[13px] leading-6 text-zinc-400">
-                Save your WakaTime OAuth token to see coding stats each time a new tab opens.
-              </p>
-              <button
-                class="mt-5 inline-flex items-center justify-center rounded-md bg-emerald-400 px-4 py-2 text-[13px] font-semibold text-neutral-950 hover:bg-emerald-300"
-                type="button"
-                (click)="settingsRequested.emit()"
-              >
-                Add credential
-              </button>
-            </section>
+            <dt-connect-wakatime (tokenSubmitted)="credentialSubmitted.emit($event)" />
           }
           @case ('invalid_auth') {
-            <section
-              class="w-full max-w-md rounded-md border border-amber-400/25 bg-neutral-950 p-8 text-center"
-            >
-              <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-300">
-                / credential
-              </p>
-              <h2 class="mt-1 text-xl font-semibold tracking-tight text-zinc-50">
-                Reconnect WakaTime
-              </h2>
-              <p class="mt-2 text-[13px] leading-6 text-zinc-400">
-                The saved credential did not work. WakaTime API keys no longer work here, so save an
-                OAuth token to resume your dashboard.
-              </p>
-              <button
-                class="mt-5 inline-flex items-center justify-center rounded-md bg-emerald-400 px-4 py-2 text-[13px] font-semibold text-neutral-950 hover:bg-emerald-300"
-                type="button"
-                (click)="settingsRequested.emit()"
-              >
-                Update credential
-              </button>
-            </section>
+            <dt-connect-wakatime
+              mode="reconnect"
+              (tokenSubmitted)="credentialSubmitted.emit($event)"
+            />
           }
           @case ('error') {
             <section class="w-full max-w-md rounded-md border border-white/8 bg-neutral-950 p-8">
-              <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-red-300">/ error</p>
+              <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-red-300">/ error</p>
               <h2 class="mt-1 text-xl font-semibold tracking-tight text-zinc-50">
                 Stats could not load
               </h2>
@@ -884,29 +660,9 @@
       [open]="true"
       [title]="cfg.title"
       [eyebrow]="cfg.eyebrow"
-      [accent]="cfg.accent"
       [showSwatch]="cfg.showSwatch"
       [items]="activeDialogItems()"
       (dismissed)="closeDialog()"
     />
   }
-
-  <button
-    type="button"
-    class="fixed right-3 bottom-3 z-30 inline-flex items-center gap-2 rounded-full border border-white/12 bg-neutral-950/90 px-2.5 py-1.5 font-mono text-[11px] text-zinc-300 shadow-[0_10px_30px_-16px_rgba(0,0,0,0.75)] backdrop-blur-md transition-colors hover:border-white/20 hover:bg-neutral-900/95 hover:text-zinc-100 sm:right-4 sm:bottom-4 sm:px-3"
-    (click)="settingsRequested.emit()"
-    [attr.aria-label]="'Auto refresh ' + autoRefreshLabel() + '. Open settings'"
-    title="Background refresh interval (click to edit)"
-  >
-    <span
-      class="h-1.5 w-1.5 rounded-full"
-      [class.bg-zinc-500]="autoRefreshIntervalMs() <= 0"
-      [class.bg-emerald-400]="autoRefreshIntervalMs() > 0 && !isSyncing()"
-      [class.animate-pulse]="autoRefreshIntervalMs() > 0 && isSyncing()"
-      aria-hidden="true"
-    ></span>
-    <span class="hidden text-zinc-500 sm:inline">auto</span>
-    <span class="hidden text-zinc-100 sm:inline">{{ autoRefreshLabel() }}</span>
-    <span class="text-zinc-100 sm:hidden">{{ autoRefreshLabel() }}</span>
-  </button>
 </main>

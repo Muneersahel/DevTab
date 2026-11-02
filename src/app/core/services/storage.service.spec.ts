@@ -103,5 +103,7 @@ describe('StorageService', () => {
     expect(cached?.data.today).toEqual(data.today);
     expect(cached?.data.activeDays).toEqual(data.activeDays);
     expect(cached?.data.dailyAverageSeconds).toBe(data.dailyAverageSeconds);
+    expect(cached?.data.activityProjects).toEqual(data.activityProjects);
+    expect(cached?.data.activity).toEqual(data.activity);
   });
 });

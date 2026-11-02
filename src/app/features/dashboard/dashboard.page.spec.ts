@@ -17,10 +17,10 @@ describe('DashboardPageComponent', () => {
     const data = normalizeDashboard(createStatsResponse(), createSummariesResponse());
     const { fixture } = await render({ kind: 'ready', data });
 
-    expect(fixture.nativeElement.textContent).toContain('18 hrs');
+    expect(fixture.nativeElement.textContent).toContain('18h');
     expect(fixture.nativeElement.textContent).toContain('DevTab');
     expect(fixture.nativeElement.querySelector('#today-heading').textContent).toContain('Today');
-    expect(fixture.nativeElement.textContent).toContain('3 hrs 48 mins');
+    expect(fixture.nativeElement.textContent).toContain('3h 48m');
     expect(fixture.nativeElement.textContent).toContain('148%');
     expect(fixture.nativeElement.textContent).toContain('VS Code');
   });
@@ -42,6 +42,28 @@ describe('DashboardPageComponent', () => {
     expect(setup).toContain('macOS');
     expect(setup).toContain('Coding');
     expect(setup).not.toContain('Hidden');
+  });
+
+  it('stacks activity by project with a legend when "by project" is chosen', async () => {
+    const data = normalizeDashboard(createStatsResponse(), createSummariesResponse());
+    const { fixture } = await render({ kind: 'ready', data });
+    const element = fixture.nativeElement as HTMLElement;
+    const legend = () => element.querySelector('dt-activity-chart [aria-label="Legend"]');
+
+    expect(element.querySelector('#week-heading')?.textContent?.trim()).toBe('Last 7 days');
+    expect(legend()).toBeNull();
+
+    const byProject = Array.from(
+      element.querySelectorAll('[aria-label="Activity view"] button'),
+    ).find((button) => button.textContent?.trim() === 'by project') as HTMLButtonElement;
+    byProject.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(byProject.getAttribute('aria-pressed')).toBe('true');
+    expect(
+      Array.from(legend()?.querySelectorAll('li') ?? []).map((li) => li.textContent?.trim()),
+    ).toEqual(['DevTab', 'Other']);
   });
 
   it('switches the focus card between projects and languages', async () => {

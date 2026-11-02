@@ -357,6 +357,9 @@ function deserializeDashboard(
     today: parseToday(value['today']),
     activeDays: parseActiveDays(value['activeDays']),
     activity,
+    activityProjects: Array.isArray(value['activityProjects'])
+      ? value['activityProjects'].filter((name): name is string => typeof name === 'string')
+      : [],
     activityUnavailable: value['activityUnavailable'],
     fetchedAt,
     cacheUpdatedAt,
@@ -419,6 +422,9 @@ function parseActivity(value: unknown): ActivityDay[] {
         time: entry['time'],
         totalSeconds: entry['totalSeconds'],
         percentOfMax: entry['percentOfMax'],
+        projectSeconds: Array.isArray(entry['projectSeconds'])
+          ? entry['projectSeconds'].filter((s): s is number => typeof s === 'number')
+          : [],
       });
     }
 

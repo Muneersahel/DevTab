@@ -35,7 +35,7 @@ describe('DashboardStoreService', () => {
     expect(store.state()).toMatchObject({
       kind: 'ready',
       data: {
-        totalTime: '18 hrs',
+        totalTime: '18h',
         activityUnavailable: true,
       },
     });

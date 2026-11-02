@@ -6,8 +6,13 @@ describe('normalizeDashboard', () => {
   it('maps WakaTime stats and summaries into dashboard data', () => {
     const dashboard = normalizeDashboard(createStatsResponse(), createSummariesResponse());
 
-    expect(dashboard.totalTime).toBe('18 hrs');
-    expect(dashboard.dailyAverage).toBe('2 hrs 34 mins');
+    expect(dashboard.totalTime).toBe('18h');
+    expect(dashboard.dailyAverage).toBe('2h 34m');
+    expect(dashboard.rangeLabel).toBe('Last 7 days');
+    expect(dashboard.bestDay?.text).toBe('4h 12m');
+    expect(dashboard.activityProjects).toEqual(['DevTab']);
+    expect(dashboard.activity[0].projectSeconds).toEqual([0, 3600]);
+    expect(dashboard.activity[4].projectSeconds).toEqual([15120, 0]);
     expect(dashboard.topLanguage?.name).toBe('TypeScript');
     expect(dashboard.topProject?.name).toBe('DevTab');
     expect(dashboard.activity).toHaveLength(7);
@@ -17,7 +22,7 @@ describe('normalizeDashboard', () => {
     expect(dashboard.activeDays).toEqual({ active: 6, total: 7 });
     expect(dashboard.today).toEqual({
       date: '2026-04-17',
-      time: '3 hrs 48 mins',
+      time: '3h 48m',
       percentOfAverage: 148,
       remainingToAverage: null,
       topProject: null,
@@ -38,7 +43,7 @@ describe('normalizeDashboard', () => {
     const dashboard = normalizeDashboard(createStatsResponse(), summaries);
 
     expect(dashboard.today).toMatchObject({
-      time: '1 hr',
+      time: '1h',
       percentOfAverage: 39,
       remainingToAverage: '1h 34m',
       topProject: 'DevTab',
@@ -107,6 +112,6 @@ describe('normalizeDashboard', () => {
       }),
       null,
     );
-    expect(higher.totalTimeIncludingOther).toBe('21 hrs 40 mins');
+    expect(higher.totalTimeIncludingOther).toBe('21h 40m');
   });
 });

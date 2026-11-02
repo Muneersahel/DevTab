@@ -12,7 +12,11 @@ import { DashboardState, DashboardViewModel, UsageItem } from '../../core/models
 import { BrowserSearchService } from '../../core/services/browser-search.service';
 import { StorageService } from '../../core/services/storage.service';
 import { TaskStoreService } from '../../core/services/task-store.service';
-import { ActivityChartComponent } from '../../shared/ui/activity-chart.component';
+import {
+  ActivityChartComponent,
+  type ActivityChartMode,
+} from '../../shared/ui/activity-chart.component';
+import { OTHER_PROJECT_COLOR, PROJECT_COLORS } from '../../shared/ui/chart-registry';
 import { DataDialogComponent } from '../../shared/ui/data-dialog.component';
 import { UsageListComponent } from '../../shared/ui/usage-list.component';
 import { QuickSearchDialogComponent } from '../productivity/quick-search-dialog.component';
@@ -61,6 +65,32 @@ export class DashboardPageComponent {
 
   protected readonly activeDialog = signal<DialogKey | null>(null);
   protected readonly focusTab = signal<'projects' | 'languages'>('projects');
+  protected readonly activityMode = signal<ActivityChartMode>('total');
+
+  /** Focus-list bar colours that match each project's colour in the activity chart. */
+  protected readonly projectColors = computed((): string[] => {
+    const data = this.dashboard();
+    if (!data) return [];
+    return data.projects.map((project) => {
+      const index = data.activityProjects.indexOf(project.name);
+      return index >= 0 ? PROJECT_COLORS[index] : OTHER_PROJECT_COLOR;
+    });
+  });
+
+  /** WakaTime's cache state, kept out of the meta line and offered as a tooltip. */
+  protected readonly statusTitle = computed(() => {
+    const data = this.dashboard();
+    if (!data) return '';
+    const cache = data.cacheUpdatedAt
+      ? ` · WakaTime cache ${data.cacheUpdatedAt.toLocaleString(undefined, {
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}`
+      : '';
+    return `${data.status.label}: ${data.status.detail}${cache}`;
+  });
 
   /** Rarely-changing environment dimensions, condensed into one "setup" card. */
   protected readonly setupRows = computed((): SetupRow[] => {

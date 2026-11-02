@@ -36,6 +36,11 @@ export interface DashboardViewModel {
   /** Days with tracked time out of the days in the summaries range. */
   activeDays: { active: number; total: number } | null;
   activity: ActivityDay[];
+  /**
+   * The range's top projects (at most three), in the order used for
+   * `ActivityDay.projectSeconds`, so each project keeps one colour everywhere.
+   */
+  activityProjects: string[];
   activityUnavailable: boolean;
   /**
    * Wall-clock time at which DevTab actually ran the refresh. This is the
@@ -88,6 +93,8 @@ export interface ActivityDay {
   time: string;
   totalSeconds: number;
   percentOfMax: number;
+  /** Seconds per `activityProjects` entry, followed by everything else ("Other"). */
+  projectSeconds: number[];
 }
 
 export interface DashboardStatus {

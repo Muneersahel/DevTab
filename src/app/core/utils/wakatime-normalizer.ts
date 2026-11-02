@@ -7,6 +7,9 @@ import {
 } from '../models/dashboard.model';
 import { TimedUsage, WakaTimeStatsResponse } from '../models/wakatime-stats.model';
 import { WakaTimeSummariesResponse, WakaTimeSummaryDay } from '../models/wakatime-summaries.model';
+import { formatSeconds } from './duration';
+
+const ACTIVITY_PROJECT_COUNT = 3;
 
 /**
  * Builds the dashboard view model. Summaries are the authoritative source for
@@ -31,11 +34,9 @@ export function normalizeDashboard(
 
   const totalSeconds = aggregated?.totalSeconds ?? statsData?.total_seconds ?? 0;
 
-  const totalTime =
-    summaries?.cumulative_total?.text ||
-    (aggregated ? formatSeconds(aggregated.totalSeconds) : null) ||
-    statsData?.human_readable_total ||
-    formatSeconds(statsData?.total_seconds ?? 0);
+  // Durations are formatted from seconds ("4h 34m") rather than WakaTime's
+  // long-form text ("4 hrs 34 mins") so every number reads the same way.
+  const totalTime = formatSeconds(totalSeconds);
 
   const dailyAverageSeconds =
     summaries?.daily_average?.seconds ??
@@ -43,13 +44,7 @@ export function normalizeDashboard(
       ? aggregated.totalSeconds / aggregated.codingDays
       : (statsData?.daily_average ?? 0));
 
-  const dailyAverage =
-    summaries?.daily_average?.text ||
-    (aggregated && aggregated.codingDays > 0
-      ? formatSeconds(aggregated.totalSeconds / aggregated.codingDays)
-      : null) ||
-    statsData?.human_readable_daily_average ||
-    formatSeconds(statsData?.daily_average ?? 0);
+  const dailyAverage = formatSeconds(dailyAverageSeconds);
 
   const languages = aggregated?.languages ?? toUsageItems(statsData?.languages);
   const projects = aggregated?.projects ?? toUsageItems(statsData?.projects);
@@ -64,12 +59,12 @@ export function normalizeDashboard(
   // Only surface the "including other" total when it's materially higher
   // (WakaTime often returns the same value when there's no "Other" bucket).
   const totalTimeIncludingOther =
-    statsData && otherLanguageDelta > 60
-      ? statsData.human_readable_total_including_other_language ||
-        formatSeconds(totalIncludingOtherSeconds)
-      : null;
+    statsData && otherLanguageDelta > 60 ? formatSeconds(totalIncludingOtherSeconds) : null;
 
-  const bestDay = aggregated?.bestDay ?? statsData?.best_day ?? null;
+  const statsBestDay = statsData?.best_day;
+  const bestDay =
+    aggregated?.bestDay ??
+    (statsBestDay ? { ...statsBestDay, text: formatSeconds(statsBestDay.total_seconds) } : null);
   const aiVsHuman =
     aggregated?.aiVsHuman ?? (statsData ? normalizeAiVsHumanFromStats(statsData) : null);
 
@@ -81,7 +76,9 @@ export function normalizeDashboard(
     totalTimeIncludingOther,
     dailyAverage,
     dailyAverageSeconds,
-    rangeLabel: statsData?.human_readable_range || deriveRangeLabel(summaries) || 'Last 7 days',
+    // Summaries define the rolling range every number is computed from; stats'
+    // `human_readable_range` ("last week") doesn't match it.
+    rangeLabel: deriveRangeLabel(summaries) || statsData?.human_readable_range || 'Last 7 days',
     bestDay,
     topLanguage: languages[0] ?? null,
     topProject: projects[0] ?? null,
@@ -104,6 +101,7 @@ export function normalizeDashboard(
         ? { active: aggregated.codingDays, total: summaries.data.length }
         : null,
     activity: aggregated?.activity ?? [],
+    activityProjects: aggregated?.activityProjects ?? [],
     activityUnavailable: summaries === null,
     fetchedAt,
     cacheUpdatedAt,
@@ -177,6 +175,7 @@ interface AggregatedSummaries {
   bestDay: { date: string; text: string; total_seconds: number } | null;
   aiVsHuman: AiVsHumanStats | null;
   activity: ActivityDay[];
+  activityProjects: string[];
 }
 
 function aggregateSummaries(summaries: WakaTimeSummariesResponse): AggregatedSummaries {
@@ -184,19 +183,22 @@ function aggregateSummaries(summaries: WakaTimeSummariesResponse): AggregatedSum
   const totalSeconds =
     summaries.cumulative_total?.seconds ??
     days.reduce((acc, day) => acc + (day.grand_total?.total_seconds ?? 0), 0);
+  const projects = aggregateBucket(days, (day) => day.projects, totalSeconds);
+  const activityProjects = projects.slice(0, ACTIVITY_PROJECT_COUNT).map((p) => p.name);
 
   return {
     totalSeconds,
     codingDays: countCodingDays(days),
     languages: aggregateBucket(days, (day) => day.languages, totalSeconds),
-    projects: aggregateBucket(days, (day) => day.projects, totalSeconds),
+    projects,
     categories: aggregateBucket(days, (day) => day.categories, totalSeconds),
     editors: aggregateBucket(days, (day) => day.editors, totalSeconds),
     operatingSystems: aggregateBucket(days, (day) => day.operating_systems, totalSeconds),
     machines: aggregateBucket(days, (day) => day.machines, totalSeconds),
     bestDay: pickBestDay(days),
     aiVsHuman: aggregateAiVsHuman(days),
-    activity: buildActivity(days),
+    activity: buildActivity(days, activityProjects),
+    activityProjects,
   };
 }
 
@@ -248,7 +250,7 @@ function pickBestDay(
     if (!best || seconds > best.total_seconds) {
       best = {
         date: day.range.date,
-        text: day.grand_total?.text || formatSeconds(seconds),
+        text: formatSeconds(seconds),
         total_seconds: seconds,
       };
     }
@@ -296,7 +298,7 @@ function aggregateAiVsHuman(days: WakaTimeSummaryDay[]): AiVsHumanStats | null {
   };
 }
 
-function buildActivity(days: WakaTimeSummaryDay[]): ActivityDay[] {
+function buildActivity(days: WakaTimeSummaryDay[], projectNames: string[]): ActivityDay[] {
   if (days.length === 0) {
     return [];
   }
@@ -305,13 +307,18 @@ function buildActivity(days: WakaTimeSummaryDay[]): ActivityDay[] {
 
   return days.map((day) => {
     const totalSeconds = day.grand_total?.total_seconds ?? 0;
+    const topSeconds = projectNames.map(
+      (name) => day.projects?.find((p) => p.name === name)?.total_seconds ?? 0,
+    );
+    const otherSeconds = Math.max(0, totalSeconds - topSeconds.reduce((a, b) => a + b, 0));
 
     return {
       date: day.range.date,
       label: formatDayLabel(day.range.date),
-      time: day.grand_total?.text || formatSeconds(totalSeconds),
+      time: formatSeconds(totalSeconds),
       totalSeconds,
       percentOfMax: Math.round((totalSeconds / max) * 100),
+      projectSeconds: [...topSeconds, otherSeconds],
     };
   });
 }
@@ -330,7 +337,7 @@ function summarizeToday(
 
   return {
     date: day.range.date,
-    time: day.grand_total?.text || formatSeconds(seconds),
+    time: formatSeconds(seconds),
     percentOfAverage: hasAverage ? Math.round((seconds / dailyAverageSeconds) * 100) : null,
     remainingToAverage:
       hasAverage && seconds < dailyAverageSeconds
@@ -391,25 +398,9 @@ function toUsageItems(items: TimedUsage[] | undefined): UsageItem[] {
   return (items ?? []).map((item) => ({
     name: item.name,
     percent: item.percent,
-    time: item.text,
+    time: formatSeconds(item.total_seconds),
     totalSeconds: item.total_seconds,
   }));
-}
-
-function formatSeconds(value: number): string {
-  const totalMinutes = Math.round(value / 60);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
-  if (hours === 0) {
-    return `${minutes}m`;
-  }
-
-  if (minutes === 0) {
-    return `${hours}h`;
-  }
-
-  return `${hours}h ${minutes}m`;
 }
 
 function formatDayLabel(date: string): string {

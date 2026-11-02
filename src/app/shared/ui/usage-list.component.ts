@@ -19,7 +19,7 @@ import { CHART_PALETTE } from './chart-registry';
                 ></span>
               }
               <span
-                class="line-clamp-2 min-w-0 break-words text-[13px] font-medium leading-snug text-zinc-100"
+                class="min-w-0 truncate text-[13px] font-medium leading-snug text-zinc-100"
                 [attr.title]="item.name"
                 >{{ item.name }}</span
               >
@@ -53,10 +53,12 @@ export class UsageListComponent {
   readonly emptyMessage = input<string>('No data yet.');
   readonly showSwatch = input<boolean>(true);
   readonly accent = input<string>('#34d399');
+  /** Per-item bar colours by position; items past the end use `accent`. */
+  readonly colors = input<readonly string[]>([]);
 
   protected colorAt(index: number): string {
     if (!this.showSwatch()) {
-      return this.accent();
+      return this.colors()[index] ?? this.accent();
     }
     return CHART_PALETTE[index % CHART_PALETTE.length];
   }

@@ -66,6 +66,14 @@ export const CHART_PALETTE = [
   '#fb7185',
 ] as const;
 
+/**
+ * Colours for the top projects, in rank order, then a neutral for "Other".
+ * The three hues are validated as a categorical set (CVD and contrast) on the
+ * dark card surface (#111114), so one project keeps one colour across cards.
+ */
+export const PROJECT_COLORS = ['#3987e5', '#d95926', '#199e70'] as const;
+export const OTHER_PROJECT_COLOR = '#71717a';
+
 export function paletteFor(index: number): string {
   return CHART_PALETTE[index % CHART_PALETTE.length];
 }

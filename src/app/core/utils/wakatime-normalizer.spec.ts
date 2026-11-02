@@ -109,25 +109,4 @@ describe('normalizeDashboard', () => {
     );
     expect(higher.totalTimeIncludingOther).toBe('21 hrs 40 mins');
   });
-
-  it('marks WakaTime profile visibility flags', () => {
-    const dashboard = normalizeDashboard(
-      createStatsResponse({
-        is_language_usage_visible: false,
-        is_editor_usage_visible: false,
-        is_os_usage_visible: false,
-        is_category_usage_visible: false,
-        is_coding_activity_visible: false,
-      }),
-      null,
-    );
-
-    expect(dashboard.visibility).toEqual({
-      languages: false,
-      editors: false,
-      operatingSystems: false,
-      categories: false,
-      codingActivity: false,
-    });
-  });
 });

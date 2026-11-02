@@ -37,7 +37,6 @@ export interface DashboardViewModel {
   activeDays: { active: number; total: number } | null;
   activity: ActivityDay[];
   activityUnavailable: boolean;
-  visibility: VisibilityFlags;
   /**
    * Wall-clock time at which DevTab actually ran the refresh. This is the
    * timestamp users care about — "when was this data pulled from WakaTime?"
@@ -74,14 +73,6 @@ export interface TodaySummary {
   remainingToAverage: string | null;
   topProject: string | null;
   topLanguage: string | null;
-}
-
-export interface VisibilityFlags {
-  languages: boolean;
-  editors: boolean;
-  operatingSystems: boolean;
-  categories: boolean;
-  codingActivity: boolean;
 }
 
 export interface UsageItem {

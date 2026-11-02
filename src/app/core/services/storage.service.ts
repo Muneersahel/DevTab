@@ -7,7 +7,6 @@ import {
   DashboardViewModel,
   TodaySummary,
   UsageItem,
-  VisibilityFlags,
 } from '../models/dashboard.model';
 import type { KanbanColumnId, Task, TaskKind, TaskStatus } from '../models/task.model';
 import {
@@ -299,7 +298,6 @@ function deserializeDashboard(
   const machinesAll = parseUsageItems(value['machinesAll']);
   const activity = parseActivity(value['activity']);
   const status = parseStatus(value['status']);
-  const visibility = parseVisibility(value['visibility']);
   const aiVsHuman = parseAiVsHuman(value['aiVsHuman']);
 
   if (
@@ -360,7 +358,6 @@ function deserializeDashboard(
     activeDays: parseActiveDays(value['activeDays']),
     activity,
     activityUnavailable: value['activityUnavailable'],
-    visibility,
     fetchedAt,
     cacheUpdatedAt,
     status,
@@ -464,30 +461,6 @@ function parseBestDay(value: unknown): BestDay | null {
   }
 
   return null;
-}
-
-function parseVisibility(value: unknown): VisibilityFlags {
-  if (!isRecord(value)) {
-    return {
-      languages: true,
-      editors: true,
-      operatingSystems: true,
-      categories: true,
-      codingActivity: true,
-    };
-  }
-
-  return {
-    languages: readFlag(value['languages']),
-    editors: readFlag(value['editors']),
-    operatingSystems: readFlag(value['operatingSystems']),
-    categories: readFlag(value['categories']),
-    codingActivity: readFlag(value['codingActivity']),
-  };
-}
-
-function readFlag(value: unknown): boolean {
-  return typeof value === 'boolean' ? value : true;
 }
 
 function parseAiVsHuman(value: unknown): AiVsHumanStats | null {

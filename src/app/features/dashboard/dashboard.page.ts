@@ -73,21 +73,18 @@ export class DashboardPageComponent {
         label: 'Editors',
         items: data.editors.slice(0, 3),
         total: data.editorsAll.length,
-        hidden: !data.visibility.editors,
       },
       {
         key: 'operatingSystems',
         label: 'OS',
         items: data.operatingSystems.slice(0, 3),
         total: data.operatingSystemsAll.length,
-        hidden: !data.visibility.operatingSystems,
       },
       {
         key: 'categories',
         label: 'Categories',
         items: data.categories.slice(0, 3),
         total: data.categoriesAll.length,
-        hidden: !data.visibility.categories,
       },
     ];
 
@@ -97,7 +94,6 @@ export class DashboardPageComponent {
         label: 'Machines',
         items: data.machines.slice(0, 3),
         total: data.machinesAll.length,
-        hidden: false,
       });
     }
 
@@ -270,7 +266,6 @@ interface SetupRow {
   label: string;
   items: UsageItem[];
   total: number;
-  hidden: boolean;
 }
 
 type DialogKey =

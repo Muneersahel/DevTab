@@ -369,10 +369,6 @@
                     />
                   </div>
                 </div>
-              } @else if (!data.visibility.codingActivity) {
-                <p class="mt-5 flex-1 text-[13px] text-zinc-400">
-                  Coding activity is hidden on your WakaTime profile.
-                </p>
               } @else {
                 <p class="mt-5 flex-1 text-[13px] text-zinc-400">No activity recorded yet.</p>
               }
@@ -427,11 +423,7 @@
                   <dt-usage-list
                     [items]="data.languages"
                     [showSwatch]="false"
-                    [emptyMessage]="
-                      data.visibility.languages
-                        ? 'No language data yet.'
-                        : 'Language usage is hidden on your WakaTime profile.'
-                    "
+                    emptyMessage="No language data yet."
                   />
                 }
               </div>
@@ -541,32 +533,28 @@
               @for (row of setupRows(); track row.key) {
                 <dt class="text-[13px] text-zinc-400 sm:py-1">{{ row.label }}</dt>
                 <dd class="flex min-w-0 flex-wrap items-center gap-1.5">
-                  @if (row.hidden) {
-                    <span class="text-[13px] text-zinc-400">Hidden on your WakaTime profile.</span>
-                  } @else {
-                    @for (item of row.items; track item.name) {
-                      <span
-                        class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/8 px-2.5 py-1 text-[12px] text-zinc-200"
-                        [title]="item.name + ' · ' + item.time"
+                  @for (item of row.items; track item.name) {
+                    <span
+                      class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/8 px-2.5 py-1 text-[12px] text-zinc-200"
+                      [title]="item.name + ' · ' + item.time"
+                    >
+                      <span class="truncate">{{ item.name }}</span>
+                      <span class="font-mono tabular-nums text-zinc-400"
+                        >{{ item.percent | number: '1.0-0' }}%</span
                       >
-                        <span class="truncate">{{ item.name }}</span>
-                        <span class="font-mono tabular-nums text-zinc-400"
-                          >{{ item.percent | number: '1.0-0' }}%</span
-                        >
-                      </span>
-                    } @empty {
-                      <span class="text-[13px] text-zinc-400">No data yet.</span>
-                    }
-                    @if (row.total > row.items.length) {
-                      <button
-                        type="button"
-                        class="rounded-full px-2 py-1 font-mono text-[11px] text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
-                        (click)="openDialog(row.key)"
-                        [attr.aria-label]="'All ' + row.total + ' ' + (row.label | lowercase)"
-                      >
-                        all {{ row.total }} →
-                      </button>
-                    }
+                    </span>
+                  } @empty {
+                    <span class="text-[13px] text-zinc-400">No data yet.</span>
+                  }
+                  @if (row.total > row.items.length) {
+                    <button
+                      type="button"
+                      class="rounded-full px-2 py-1 font-mono text-[11px] text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+                      (click)="openDialog(row.key)"
+                      [attr.aria-label]="'All ' + row.total + ' ' + (row.label | lowercase)"
+                    >
+                      all {{ row.total }} →
+                    </button>
                   }
                 </dd>
               }

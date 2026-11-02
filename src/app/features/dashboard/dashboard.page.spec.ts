@@ -25,6 +25,25 @@ describe('DashboardPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('VS Code');
   });
 
+  it('shows editor, OS and category usage even when they are private on the public profile', async () => {
+    const data = normalizeDashboard(
+      createStatsResponse({
+        is_editor_usage_visible: false,
+        is_os_usage_visible: false,
+        is_category_usage_visible: false,
+      }),
+      createSummariesResponse(),
+    );
+    const { fixture } = await render({ kind: 'ready', data });
+    const setup = fixture.nativeElement.querySelector('[aria-labelledby="setup-heading"]')
+      .textContent as string;
+
+    expect(setup).toContain('VS Code');
+    expect(setup).toContain('macOS');
+    expect(setup).toContain('Coding');
+    expect(setup).not.toContain('Hidden');
+  });
+
   it('switches the focus card between projects and languages', async () => {
     const data = normalizeDashboard(createStatsResponse(), createSummariesResponse());
     const { fixture } = await render({ kind: 'ready', data });

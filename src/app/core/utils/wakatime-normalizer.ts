@@ -13,9 +13,10 @@ import { WakaTimeSummariesResponse, WakaTimeSummaryDay } from '../models/wakatim
  * the numbers a developer sees first — they're recomputed from heartbeats per
  * day and tend to be hours fresher than the heavily-cached `/stats` endpoint.
  *
- * Stats only contributes things summaries cannot express: profile visibility
- * flags and the cache-freshness indicator (`is_cached`, `is_up_to_date`,
- * `percent_calculated`, `modified_at`).
+ * Stats only contributes things summaries cannot express: the cache-freshness
+ * indicator (`is_cached`, `is_up_to_date`, `percent_calculated`,
+ * `modified_at`). Its `is_*_visible` flags describe the public profile only,
+ * not what the API returns to the token owner, so they are deliberately unused.
  *
  * When summaries are unavailable we gracefully fall back to stats so the
  * dashboard still renders something useful.
@@ -104,13 +105,6 @@ export function normalizeDashboard(
         : null,
     activity: aggregated?.activity ?? [],
     activityUnavailable: summaries === null,
-    visibility: {
-      languages: statsData?.is_language_usage_visible !== false,
-      editors: statsData?.is_editor_usage_visible !== false,
-      operatingSystems: statsData?.is_os_usage_visible !== false,
-      categories: statsData?.is_category_usage_visible !== false,
-      codingActivity: statsData?.is_coding_activity_visible !== false,
-    },
     fetchedAt,
     cacheUpdatedAt,
     status: normalizeStatus(stats, summaries, totalSeconds),

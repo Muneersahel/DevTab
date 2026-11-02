@@ -1,6 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { KANBAN_COLUMNS, KanbanColumnId, type Task, newTaskId } from '../models/task.model';
+import { isDueByToday, localYmd } from '../utils/task-due';
 import { StorageService } from './storage.service';
+
+const UP_NEXT_LIMIT = 5;
 
 @Injectable({ providedIn: 'root' })
 export class TaskStoreService {
@@ -17,27 +20,26 @@ export class TaskStoreService {
   );
 
   /**
-   * Up to 5 open tasks across quick + project, prioritized so the board's
-   * "Doing" column surfaces first, then the quick list, then the backlog.
-   * Completed tasks are excluded so the dashboard preview always shows what
-   * is actually in flight.
+   * Dashboard preview of open tasks. `today` holds every task that is overdue
+   * or due today; `later` fills the remaining slots. Both keep "Doing" ahead of
+   * quick and backlog tasks, then sort by due date (undated last).
    */
-  readonly recentIncompleteTasks = computed((): Task[] => {
-    const open = this.tasks().filter((t) => t.status !== 'done');
-    const priority = (t: Task): number => {
-      if (t.kind === 'project' && t.columnId === 'doing') return 0;
-      if (t.kind === 'quick') return 1;
-      if (t.kind === 'project' && t.columnId === 'backlog') return 2;
-      return 3;
-    };
-    return open
-      .slice()
+  readonly upNextTasks = computed((): { today: Task[]; later: Task[] } => {
+    const now = new Date();
+    const open = this.tasks()
+      .filter((t) => t.status !== 'done')
       .sort((a, b) => {
         const p = priority(a) - priority(b);
         if (p !== 0) return p;
+        const due = compareDue(a.dueAt, b.dueAt);
+        if (due !== 0) return due;
         return a.sortOrder - b.sortOrder;
-      })
-      .slice(0, 5);
+      });
+    const today = open.filter((t) => t.dueAt !== null && isDueByToday(t.dueAt, now));
+    const later = open
+      .filter((t) => !today.includes(t))
+      .slice(0, Math.max(0, UP_NEXT_LIMIT - today.length));
+    return { today, later };
   });
 
   readonly openTaskCount = computed(() => this.tasks().filter((t) => t.status !== 'done').length);
@@ -272,11 +274,19 @@ function renumberProjectColumns(tasks: Task[]): Task[] {
   return out;
 }
 
-function localYmd(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+function priority(t: Task): number {
+  if (t.kind === 'project' && t.columnId === 'doing') return 0;
+  if (t.kind === 'quick') return 1;
+  if (t.kind === 'project' && t.columnId === 'backlog') return 2;
+  return 3;
+}
+
+/** Earliest due date first; undated tasks last. */
+function compareDue(a: string | null, b: string | null): number {
+  if (a === b) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  return a < b ? -1 : 1;
 }
 
 function normalizeAllTasks(tasks: Task[]): Task[] {

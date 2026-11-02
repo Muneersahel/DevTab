@@ -1,4 +1,4 @@
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { explicitEffect } from 'ngxtension/explicit-effect';
 import type { Task } from '../../core/models/task.model';
 import { TaskStoreService } from '../../core/services/task-store.service';
+import { describeDue, type DueTone } from '../../core/utils/task-due';
 
 /**
  * Centered modal for full task list: grouped inbox (Now / Up next / Done) and
@@ -23,7 +24,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
  */
 @Component({
   selector: 'dt-tasks-dialog',
-  imports: [FormsModule, DatePipe, NgTemplateOutlet],
+  imports: [FormsModule, NgTemplateOutlet],
   template: `
     @if (open()) {
       <div
@@ -271,12 +272,20 @@ import { TaskStoreService } from '../../core/services/task-store.service';
             {{ kindLabel(task) }}
           </span>
 
-          @if (task.dueAt) {
-            <span
-              class="hidden shrink-0 font-mono text-[11px] tabular-nums text-zinc-400 sm:inline"
-            >
-              {{ task.dueAt | date: 'd MMM' }}
-            </span>
+          @if (task.status !== 'done') {
+            @let tone = dueTone(task);
+            <input
+              #dueInput
+              type="date"
+              class="w-34 shrink-0 rounded border border-white/10 bg-transparent px-1.5 py-0.5 font-mono text-[11px] tabular-nums"
+              [class.text-red-300]="tone === 'overdue'"
+              [class.text-amber-300]="tone === 'today'"
+              [class.text-zinc-300]="tone === 'upcoming'"
+              [class.text-zinc-400]="tone === null"
+              [value]="task.dueAt ?? ''"
+              (change)="setDue(task.id, dueInput.value)"
+              [attr.aria-label]="'Due date for ' + task.title"
+            />
           }
 
           <button
@@ -384,6 +393,14 @@ export class TasksDialogComponent {
 
   protected remove(id: string): void {
     void this.store.deleteTask(id);
+  }
+
+  protected setDue(id: string, value: string): void {
+    void this.store.updateTaskDue(id, value || null);
+  }
+
+  protected dueTone(task: Task): DueTone | null {
+    return task.dueAt ? describeDue(task.dueAt, new Date()).tone : null;
   }
 
   protected kindLabel(task: Task): string {

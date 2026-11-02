@@ -11,6 +11,7 @@ export interface Task {
   kind: TaskKind;
   title: string;
   status: TaskStatus;
+  /** Local calendar date (`YYYY-MM-DD`), or null when undated. */
   dueAt: string | null;
   createdAt: string;
   updatedAt: string;

@@ -1,8 +1,9 @@
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import type { Task } from '../../core/models/task.model';
 import { TaskStoreService } from '../../core/services/task-store.service';
+import { describeDue, type DueDescription } from '../../core/utils/task-due';
 
 /**
  * Right-column preview of in-flight tasks with quick capture. Full list lives
@@ -10,7 +11,7 @@ import { TaskStoreService } from '../../core/services/task-store.service';
  */
 @Component({
   selector: 'dt-recent-tasks-panel',
-  imports: [FormsModule, DatePipe, NgTemplateOutlet],
+  imports: [FormsModule, NgTemplateOutlet],
   template: `
     <section
       id="recent-tasks"
@@ -57,18 +58,47 @@ import { TaskStoreService } from '../../core/services/task-store.service';
         />
       </form>
 
-      <ul
-        class="max-h-[min(24rem,calc(100vh-14rem))] divide-y divide-white/5 overflow-y-auto overflow-x-hidden px-2"
-      >
-        @for (task of store.recentIncompleteTasks(); track task.id) {
-          <ng-container *ngTemplateOutlet="row; context: { $implicit: task }" />
-        } @empty {
-          <li class="list-none px-2 py-8 text-center" role="presentation">
-            <p class="font-serif-italic text-[15px] text-zinc-400">Nothing in flight.</p>
-            <p class="mt-1 text-[12px] text-zinc-400">Add something above.</p>
-          </li>
+      <div class="max-h-[min(24rem,calc(100vh-14rem))] overflow-y-auto overflow-x-hidden px-2">
+        @if (store.upNextTasks(); as groups) {
+          @if (groups.today.length) {
+            <h3
+              id="up-next-today"
+              class="px-2 pt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-amber-300"
+            >
+              Today
+            </h3>
+            <ul class="divide-y divide-white/5" aria-labelledby="up-next-today">
+              @for (task of groups.today; track task.id) {
+                <ng-container *ngTemplateOutlet="row; context: { $implicit: task }" />
+              }
+            </ul>
+            @if (groups.later.length) {
+              <h3
+                id="up-next-later"
+                class="px-2 pt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-400"
+              >
+                Later
+              </h3>
+            }
+          }
+          @if (groups.later.length) {
+            <ul
+              class="divide-y divide-white/5"
+              [attr.aria-labelledby]="groups.today.length ? 'up-next-later' : null"
+            >
+              @for (task of groups.later; track task.id) {
+                <ng-container *ngTemplateOutlet="row; context: { $implicit: task }" />
+              }
+            </ul>
+          }
+          @if (!groups.today.length && !groups.later.length) {
+            <div class="px-2 py-8 text-center">
+              <p class="font-serif-italic text-[15px] text-zinc-400">Nothing in flight.</p>
+              <p class="mt-1 text-[12px] text-zinc-400">Add something above.</p>
+            </div>
+          }
         }
-      </ul>
+      </div>
 
       <footer class="border-t border-white/6 px-4 py-2.5">
         <button
@@ -141,8 +171,14 @@ import { TaskStoreService } from '../../core/services/task-store.service';
         </span>
 
         @if (task.dueAt) {
-          <span class="hidden shrink-0 font-mono text-[11px] tabular-nums text-zinc-400 md:inline">
-            {{ task.dueAt | date: 'd MMM' }}
+          @let due = describeDue(task.dueAt);
+          <span
+            class="shrink-0 font-mono text-[11px] tabular-nums"
+            [class.text-red-300]="due.tone === 'overdue'"
+            [class.text-amber-300]="due.tone === 'today'"
+            [class.text-zinc-400]="due.tone === 'upcoming'"
+          >
+            <span class="sr-only">Due </span>{{ due.label }}
           </span>
         }
 
@@ -209,6 +245,10 @@ export class RecentTasksPanelComponent {
 
   protected remove(id: string): void {
     void this.store.deleteTask(id);
+  }
+
+  protected describeDue(dueAt: string): DueDescription {
+    return describeDue(dueAt, new Date());
   }
 
   protected kindLabel(task: Task): string {

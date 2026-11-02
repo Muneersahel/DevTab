@@ -84,8 +84,6 @@ export class App implements OnInit {
     void this.storage.saveUiPreferences(prefs).then(() => {
       this.uiPrefs.set(prefs);
       this.store.setAutoRefreshIntervalMs(prefs.autoRefreshIntervalMs);
-      this.settingsOpen.set(false);
-      toast.success('Preferences saved.');
     });
   }
 }

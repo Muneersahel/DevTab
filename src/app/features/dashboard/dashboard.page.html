@@ -651,6 +651,7 @@
     [open]="searchOpen()"
     (dismissed)="searchOpen.set(false)"
     (searchRequested)="runSearch($event)"
+    (urlRequested)="openUrl($event)"
   />
 
   <dt-tasks-dialog [open]="tasksOpen()" (dismissed)="tasksOpen.set(false)" />

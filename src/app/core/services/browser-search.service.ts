@@ -33,4 +33,9 @@ export class BrowserSearchService {
     const url = template.split('%s').join(encodeURIComponent(trimmed));
     globalThis.location.assign(url);
   }
+
+  /** Navigates the current tab to an http(s) URL. */
+  openUrl(url: string): void {
+    globalThis.location.assign(url);
+  }
 }

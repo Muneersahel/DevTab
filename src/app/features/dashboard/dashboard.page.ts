@@ -193,6 +193,10 @@ export class DashboardPageComponent {
     this.browserSearch.runSearch(query, prefs.searchUrlTemplate);
   }
 
+  protected openUrl(url: string): void {
+    this.browserSearch.openUrl(url);
+  }
+
   /**
    * Global keyboard shortcuts for dashboard-level surfaces:
    *   - Escape closes whichever drawer/dialog is open

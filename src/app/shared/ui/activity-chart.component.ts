@@ -12,6 +12,7 @@ import { ActivityDay } from '../../core/models/dashboard.model';
 import { registerCharts } from './chart-registry';
 
 const PAST_DAY_COLOR = 'rgba(52, 211, 153, 0.32)';
+const LATEST_DAY_COLOR = 'rgba(52, 211, 153, 0.9)';
 const AVERAGE_LINE_COLOR = 'rgba(244, 244, 245, 0.45)';
 
 /**
@@ -66,10 +67,6 @@ export class ActivityChartComponent {
 
     registerCharts();
 
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.offsetHeight || 220);
-    gradient.addColorStop(0, 'rgba(52, 211, 153, 0.95)');
-    gradient.addColorStop(1, 'rgba(52, 211, 153, 0.45)');
-
     const config: ChartConfiguration<'bar' | 'line'> = {
       type: 'bar',
       data: {
@@ -80,7 +77,7 @@ export class ActivityChartComponent {
             label: 'Coding time',
             data: this.minutes(),
             backgroundColor: (context: ScriptableContext<'bar'>) =>
-              context.dataIndex === this.data().length - 1 ? gradient : PAST_DAY_COLOR,
+              context.dataIndex === this.data().length - 1 ? LATEST_DAY_COLOR : PAST_DAY_COLOR,
             borderRadius: 6,
             borderSkipped: false,
             maxBarThickness: 36,

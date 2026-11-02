@@ -14,6 +14,11 @@
 @import '@fontsource/ibm-plex-mono/600.css';
 @import '@fontsource/ibm-plex-serif/500-italic.css';
 
+@theme {
+  /* Card surface: one step lighter than the page so panels read as layers. */
+  --color-surface: #111114;
+}
+
 :root {
   color-scheme: dark;
   /* ngx-sonner toaster (ViewEncapsulation.None — targets [data-sonner-toaster]) */
@@ -34,11 +39,12 @@
   box-sizing: border-box;
 }
 
+/* Only the root paints the page colour; a body background would cover the
+   negative z-index ambient layer below. */
 html,
 body {
   min-height: 100%;
   margin: 0;
-  background: #09090b;
 }
 
 body {
@@ -101,18 +107,27 @@ textarea:focus-visible,
 }
 
 /**
- * Subtle horizontal scanline background used for the page header and
- * section dividers. Evokes a technical/instrument-panel feel without the
- * garish "dashboard" gloss.
+ * Ambient page backdrop: a soft emerald/sky glow from the top and a faint dot
+ * grid that fades out below the header. Fixed to the viewport and painted
+ * behind content (z-index -1), so it costs one paint and never scrolls.
  */
-.dt-rule-lines {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.03) 0,
-    rgba(255, 255, 255, 0.03) 1px,
-    transparent 1px,
-    transparent 4px
-  );
+.dt-ambient::before,
+.dt-ambient::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.dt-ambient::before {
+  background:
+    radial-gradient(60% 50% at 15% -10%, rgb(52 211 153 / 0.14), transparent 70%),
+    radial-gradient(40% 40% at 100% -5%, rgb(14 165 233 / 0.07), transparent 70%);
+}
+.dt-ambient::after {
+  background-image: radial-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(65% 55% at 25% 0%, #000, transparent 75%);
 }
 
 /**

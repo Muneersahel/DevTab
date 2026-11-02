@@ -7,7 +7,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
   imports: [ReactiveFormsModule],
   template: `
     <section
-      class="w-full max-w-md rounded-md border bg-neutral-950 p-8"
+      class="w-full max-w-md rounded-md border bg-surface p-8"
       [class.border-white/8]="mode() === 'connect'"
       [class.border-amber-400/25]="mode() === 'reconnect'"
       aria-labelledby="connect-heading"

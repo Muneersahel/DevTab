@@ -2,7 +2,6 @@ import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   afterNextRender,
   computed,
   inject,
@@ -15,78 +14,77 @@ import { FormsModule } from '@angular/forms';
 import { explicitEffect } from 'ngxtension/explicit-effect';
 import type { Task } from '../../core/models/task.model';
 import { TaskStoreService } from '../../core/services/task-store.service';
-import { describeDue, type DueTone } from '../../core/utils/task-due';
+import { describeDue, type DueDescription } from '../../core/utils/task-due';
+import { TaskCaptureComponent } from './task-capture.component';
+
+interface TaskGroup {
+  key: 'today' | 'upcoming' | 'someday';
+  label: string;
+  tasks: Task[];
+}
 
 /**
- * Centered modal for full task list: grouped inbox (Now / Up next / Done) and
- * quick capture. Keeps the dashboard clear while keyboard shortcuts surface
- * the same surface from anywhere.
+ * Full task list in a centered modal: quick capture, open tasks grouped by
+ * due date (Today, Upcoming, No date) and a collapsed Done section.
  */
 @Component({
   selector: 'dt-tasks-dialog',
-  imports: [FormsModule, NgTemplateOutlet],
+  imports: [FormsModule, NgTemplateOutlet, TaskCaptureComponent],
   template: `
     @if (open()) {
       <div
-        class="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-6"
+        class="fixed inset-0 z-40 flex items-start justify-center px-4 pt-[min(14vh,6rem)] sm:px-6"
         role="presentation"
       >
         <div
-          class="dt-backdrop-enter absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+          class="dt-backdrop-enter fixed inset-0 bg-black/60 backdrop-blur-sm"
           aria-hidden="true"
           (click)="dismiss()"
         ></div>
 
         <section
-          class="dt-modal-enter relative z-10 flex max-h-[min(85vh,46rem)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-white/8 bg-neutral-950 shadow-[0_25px_80px_-20px_rgba(0,0,0,0.85)]"
+          class="dt-modal-enter relative z-10 flex max-h-[min(80vh,44rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-white/10 bg-zinc-900/95 shadow-[0_24px_80px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl"
           role="dialog"
           aria-modal="true"
           aria-labelledby="tasks-dialog-title"
           tabindex="-1"
           (keydown.escape)="dismiss()"
         >
-          <header
-            class="flex items-start justify-between gap-4 border-b border-white/6 px-5 pt-5 pb-4 sm:px-6 sm:pt-6"
-          >
-            <div>
-              <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-400/90">
-                / tasks
-              </p>
+          <header class="flex shrink-0 items-center justify-between gap-4 px-5 pt-5 pb-3">
+            <div class="flex min-w-0 items-baseline gap-3">
               <h2
                 id="tasks-dialog-title"
-                class="mt-1 text-xl font-semibold tracking-tight text-zinc-50"
+                class="text-[16px] font-semibold tracking-tight text-zinc-50"
               >
-                What's on your plate
+                Tasks
               </h2>
-              <p class="mt-1 text-[12px] text-zinc-400">
-                <span class="font-mono tabular-nums text-zinc-300">{{
+              <p class="truncate text-[12px] text-zinc-400">
+                <span class="font-mono tabular-nums text-zinc-200">{{
                   store.openTaskCount()
                 }}</span>
                 open
                 @if (store.completedTodayCount() > 0) {
-                  <span class="mx-1.5 text-zinc-400">·</span>
-                  <span class="font-mono tabular-nums text-zinc-400">{{
+                  <span aria-hidden="true"> · </span>
+                  <span class="font-mono tabular-nums text-zinc-200">{{
                     store.completedTodayCount()
                   }}</span>
-                  completed today
+                  done today
                 }
               </p>
             </div>
             <button
               type="button"
-              class="rounded-md border border-white/8 p-1.5 text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+              class="rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-white/8 hover:text-zinc-100"
               (click)="dismiss()"
               aria-label="Close tasks"
             >
               <svg
-                width="16"
-                height="16"
+                class="h-4 w-4"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
-                stroke-linejoin="round"
                 aria-hidden="true"
               >
                 <path d="M18 6 6 18" />
@@ -95,135 +93,125 @@ import { describeDue, type DueTone } from '../../core/utils/task-due';
             </button>
           </header>
 
-          <form
-            class="flex items-center gap-2 border-b border-white/6 px-5 py-3 sm:px-6"
-            (ngSubmit)="onFormSubmit()"
-          >
-            <span class="font-mono text-emerald-400/70" aria-hidden="true">+</span>
-            <label class="sr-only" for="tasks-dialog-input">Add task</label>
-            <input
-              #addInput
-              id="tasks-dialog-input"
-              name="newTaskTitle"
-              class="min-w-0 flex-1 bg-transparent py-1 text-[14px] text-zinc-100 placeholder:text-zinc-400 focus:outline-none"
-              type="text"
-              placeholder="Capture a quick task…"
-              [(ngModel)]="newTitle"
-              autocomplete="off"
-            />
-            <kbd
-              class="hidden rounded border border-white/10 px-1.5 py-0.5 font-mono text-[11px] text-zinc-400 sm:inline"
-              aria-hidden="true"
-              >↵</kbd
-            >
-          </form>
+          <div class="shrink-0 px-5 pb-3">
+            <dt-task-capture inputId="tasks-dialog-input" />
+          </div>
 
-          <div class="min-h-0 flex-1 overflow-y-auto">
-            <div class="px-5 py-4 sm:px-6">
-              @if (nowTasks().length) {
-                <section class="mb-5">
-                  <header class="mb-2 flex items-baseline justify-between">
-                    <h3
-                      class="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-400/80"
-                    >
-                      Now
-                    </h3>
-                    <span class="font-mono text-[11px] tabular-nums text-zinc-400">
-                      {{ nowTasks().length }}
-                    </span>
-                  </header>
-                  <ul class="divide-y divide-white/5">
-                    @for (task of nowTasks(); track task.id) {
-                      <ng-container *ngTemplateOutlet="row; context: { $implicit: task }" />
-                    }
-                  </ul>
-                </section>
-              }
-
-              @if (upNextTasks().length) {
-                <section class="mb-5">
-                  <header class="mb-2 flex items-baseline justify-between">
-                    <h3 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-                      Up next
-                    </h3>
-                    <span class="font-mono text-[11px] tabular-nums text-zinc-400">
-                      {{ upNextTasks().length }}
-                    </span>
-                  </header>
-                  <ul class="divide-y divide-white/5">
-                    @for (task of upNextTasks(); track task.id) {
-                      <ng-container *ngTemplateOutlet="row; context: { $implicit: task }" />
-                    }
-                  </ul>
-                </section>
-              }
-
-              @if (doneTasks().length) {
-                <details class="group">
-                  <summary
-                    class="flex cursor-pointer list-none items-center justify-between py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400 hover:text-zinc-300"
+          <div class="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+            @for (group of groups(); track group.key) {
+              @if (group.tasks.length) {
+                <section class="mt-1" [attr.aria-labelledby]="'tasks-group-' + group.key">
+                  <h3
+                    [id]="'tasks-group-' + group.key"
+                    class="flex items-center justify-between px-2 pt-2 pb-1 text-[11px] font-medium uppercase tracking-[0.12em]"
+                    [class.text-amber-300]="group.key === 'today'"
+                    [class.text-zinc-400]="group.key !== 'today'"
                   >
-                    <span class="inline-flex items-center gap-2">
-                      <svg
-                        class="h-3 w-3 transition-transform group-open:rotate-90"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        aria-hidden="true"
-                      >
-                        <path d="m9 18 6-6-6-6" />
-                      </svg>
-                      Done
-                    </span>
-                    <span class="font-mono tabular-nums text-zinc-400">
-                      {{ doneTasks().length }}
-                    </span>
-                  </summary>
-                  <ul class="divide-y divide-white/5">
-                    @for (task of doneTasks(); track task.id) {
+                    {{ group.label }}
+                    <span class="font-mono tabular-nums text-zinc-400">{{
+                      group.tasks.length
+                    }}</span>
+                  </h3>
+                  <ul>
+                    @for (task of group.tasks; track task.id) {
                       <ng-container *ngTemplateOutlet="row; context: { $implicit: task }" />
                     }
                   </ul>
-                </details>
+                </section>
               }
+            }
 
-              @if (!nowTasks().length && !upNextTasks().length && !doneTasks().length) {
-                <div class="px-2 py-16 text-center">
-                  <p class="font-serif-italic text-lg text-zinc-400">An empty inbox.</p>
-                  <p class="mt-1 text-[12px] text-zinc-400">
-                    Type above and press enter to capture something.
-                  </p>
+            @if (doneTasks().length) {
+              <details class="group/done mt-1">
+                <summary
+                  class="flex cursor-pointer list-none items-center justify-between rounded-md px-2 pt-2 pb-1 text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400 hover:text-zinc-200"
+                >
+                  <span class="inline-flex items-center gap-1.5">
+                    <svg
+                      class="h-3 w-3 transition-transform group-open/done:rotate-90"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                    Done
+                  </span>
+                  <span class="font-mono tabular-nums">{{ doneTasks().length }}</span>
+                </summary>
+                <ul>
+                  @for (task of doneTasks(); track task.id) {
+                    <ng-container *ngTemplateOutlet="row; context: { $implicit: task }" />
+                  }
+                </ul>
+              </details>
+            }
+
+            @if (!store.openTaskCount() && !doneTasks().length) {
+              <div class="px-4 py-14 text-center">
+                <div
+                  class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-300"
+                  aria-hidden="true"
+                >
+                  <svg
+                    class="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 11l3 3 8-8" />
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                  </svg>
                 </div>
-              }
-            </div>
+                <p class="mt-3 text-[14px] font-medium text-zinc-200">No tasks yet</p>
+                <p class="mt-1 text-[12px] text-zinc-400">
+                  Add one above. Give it a date to see it under Today.
+                </p>
+              </div>
+            }
           </div>
 
           <footer
-            class="flex items-center justify-between border-t border-white/6 bg-black/30 px-5 py-3 font-mono text-[11px] text-zinc-400 sm:px-6"
+            class="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-white/6 bg-black/20 px-5 py-2.5 text-[11px] text-zinc-400"
           >
-            <span>
-              <kbd class="rounded border border-white/10 px-1 py-0.5 text-zinc-400">esc</kbd>
-              to close
-            </span>
-            <span>
-              <kbd class="rounded border border-white/10 px-1 py-0.5 text-zinc-400">t</kbd>
-              to toggle
+            <span>Click a task to rename it</span>
+            <span class="flex items-center gap-3" aria-hidden="true">
+              <span class="inline-flex items-center gap-1.5">
+                <kbd
+                  class="rounded border border-white/12 bg-white/5 px-1.5 py-px font-mono text-zinc-300"
+                  >t</kbd
+                >
+                toggle
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <kbd
+                  class="rounded border border-white/12 bg-white/5 px-1.5 py-px font-mono text-zinc-300"
+                  >esc</kbd
+                >
+                close
+              </span>
             </span>
           </footer>
         </section>
       </div>
 
       <ng-template #row let-task>
-        <li class="group flex items-center gap-3 py-2.5">
+        <li
+          class="group flex min-h-10 items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/4"
+        >
           <button
             type="button"
-            class="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-white/15 text-transparent transition hover:border-emerald-400/60 hover:text-emerald-400"
-            [class.border-emerald-400/60]="task.status === 'done'"
+            class="flex h-4 w-4 shrink-0 items-center justify-center rounded-[5px] border border-white/20 text-transparent transition hover:border-emerald-400/70 hover:text-emerald-400"
+            [class.border-emerald-400]="task.status === 'done'"
             [class.bg-emerald-400]="task.status === 'done'"
             [class.!text-neutral-950]="task.status === 'done'"
             (click)="complete(task.id)"
-            [attr.aria-label]="'Complete: ' + task.title"
+            [attr.aria-label]="(task.status === 'done' ? 'Reopen: ' : 'Complete: ') + task.title"
           >
             <svg
               width="10"
@@ -242,14 +230,15 @@ import { describeDue, type DueTone } from '../../core/utils/task-due';
 
           @if (editingId() === task.id) {
             <input
-              class="min-w-0 flex-1 rounded border border-white/15 bg-black/30 px-2 py-1 text-[14px] text-zinc-100 focus:outline-none"
+              class="min-w-0 flex-1 rounded-md border border-white/15 bg-black/30 px-2 py-1 text-[14px] text-zinc-100 focus:border-emerald-400/50 focus:outline-none"
               type="text"
               name="editTaskTitle"
+              [attr.aria-label]="'Rename ' + task.title"
               [ngModel]="editTitle()"
               (ngModelChange)="editTitle.set($event)"
               [ngModelOptions]="{ standalone: true }"
               (keydown.enter)="saveEdit(task.id)"
-              (keydown.escape)="cancelEdit()"
+              (keydown.escape)="cancelEdit($event)"
               (blur)="saveEdit(task.id)"
             />
           } @else {
@@ -265,36 +254,79 @@ import { describeDue, type DueTone } from '../../core/utils/task-due';
             </button>
           }
 
-          <span
-            class="shrink-0 rounded border px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wider"
-            [class]="kindClasses(task)"
-          >
-            {{ kindLabel(task) }}
-          </span>
+          @if (isDoing(task)) {
+            <span
+              class="shrink-0 rounded border border-amber-400/25 bg-amber-400/5 px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wider text-amber-200"
+            >
+              Doing
+            </span>
+          }
 
           @if (task.status !== 'done') {
-            @let tone = dueTone(task);
-            <input
-              #dueInput
-              type="date"
-              class="w-34 shrink-0 rounded border border-white/10 bg-transparent px-1.5 py-0.5 font-mono text-[11px] tabular-nums"
-              [class.text-red-300]="tone === 'overdue'"
-              [class.text-amber-300]="tone === 'today'"
-              [class.text-zinc-300]="tone === 'upcoming'"
-              [class.text-zinc-400]="tone === null"
-              [value]="task.dueAt ?? ''"
-              (change)="setDue(task.id, dueInput.value)"
-              [attr.aria-label]="'Due date for ' + task.title"
-            />
+            @let due = describe(task);
+            <span class="relative shrink-0">
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[11px] tabular-nums transition hover:bg-white/8 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
+                [class.text-red-300]="due?.tone === 'overdue'"
+                [class.text-amber-300]="due?.tone === 'today'"
+                [class.text-zinc-300]="due?.tone === 'upcoming'"
+                [class.text-zinc-400]="!due"
+                [class.opacity-0]="!due"
+                [attr.aria-label]="
+                  due
+                    ? 'Due ' + due.label + '. Change due date for ' + task.title
+                    : 'Set due date for ' + task.title
+                "
+                (click)="openDatePicker(dueInput)"
+              >
+                <svg
+                  class="h-3.5 w-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M16 3v4" />
+                  <path d="M8 3v4" />
+                  <path d="M3 10h18" />
+                </svg>
+                {{ due ? due.label : 'Set date' }}
+              </button>
+              <input
+                #dueInput
+                type="date"
+                class="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+                tabindex="-1"
+                aria-hidden="true"
+                [value]="task.dueAt ?? ''"
+                (change)="setDue(task.id, dueInput.value)"
+              />
+            </span>
           }
 
           <button
             type="button"
-            class="shrink-0 font-mono text-[11px] text-zinc-400 opacity-0 transition hover:text-red-300 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
+            class="shrink-0 rounded-md p-1 text-zinc-400 opacity-0 transition hover:bg-white/8 hover:text-red-300 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100"
             (click)="remove(task.id)"
             [attr.aria-label]="'Delete: ' + task.title"
           >
-            ×
+            <svg
+              class="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
           </button>
         </li>
       </ng-template>
@@ -308,42 +340,32 @@ export class TasksDialogComponent {
 
   protected readonly store = inject(TaskStoreService);
 
-  protected readonly newTitle = signal('');
-
   protected readonly editingId = signal<string | null>(null);
   protected readonly editTitle = signal('');
 
-  private readonly addInput = viewChild<ElementRef<HTMLInputElement>>('addInput');
+  private readonly capture = viewChild(TaskCaptureComponent);
 
   constructor() {
-    afterNextRender(() => this.focusAddInput());
+    afterNextRender(() => this.focusCapture());
 
     explicitEffect([this.open], ([open]) => {
       if (open) {
         this.editingId.set(null);
-        this.newTitle.set('');
-        queueMicrotask(() => this.focusAddInput());
+        queueMicrotask(() => {
+          this.capture()?.reset();
+          this.focusCapture();
+        });
       }
     });
   }
 
-  protected readonly nowTasks = computed(() =>
-    this.store
-      .tasks()
-      .filter((t) => t.kind === 'project' && t.columnId === 'doing' && t.status !== 'done')
-      .sort((a, b) => a.sortOrder - b.sortOrder),
-  );
-
-  protected readonly upNextTasks = computed(() => {
-    const quick = this.store
-      .tasks()
-      .filter((t) => t.kind === 'quick' && t.status !== 'done')
-      .sort((a, b) => a.sortOrder - b.sortOrder);
-    const backlog = this.store
-      .tasks()
-      .filter((t) => t.kind === 'project' && t.columnId === 'backlog' && t.status !== 'done')
-      .sort((a, b) => a.sortOrder - b.sortOrder);
-    return [...quick, ...backlog];
+  protected readonly groups = computed((): TaskGroup[] => {
+    const { today, upcoming, someday } = this.store.openTaskGroups();
+    return [
+      { key: 'today', label: 'Today', tasks: today },
+      { key: 'upcoming', label: 'Upcoming', tasks: upcoming },
+      { key: 'someday', label: 'No date', tasks: someday },
+    ];
   });
 
   protected readonly doneTasks = computed(() =>
@@ -353,20 +375,10 @@ export class TasksDialogComponent {
       .sort((a, b) => (b.updatedAt < a.updatedAt ? -1 : 1)),
   );
 
-  protected onFormSubmit(): void {
-    const value = this.newTitle().trim();
-    if (!value) return;
-    void this.store.addQuickTask(value).then(() => this.newTitle.set(''));
-  }
-
   protected complete(id: string): void {
     const target = this.store.tasks().find((t) => t.id === id);
     if (target?.status === 'done') {
-      if (target.kind === 'quick') {
-        void this.store.toggleQuickTaskDone(id);
-      } else {
-        void this.store.moveProjectTaskToColumn(id, 'backlog');
-      }
+      void this.store.reopenTask(id);
       return;
     }
     void this.store.completeTask(id);
@@ -377,7 +389,9 @@ export class TasksDialogComponent {
     this.editTitle.set(task.title);
   }
 
-  protected cancelEdit(): void {
+  protected cancelEdit(event: Event): void {
+    // Keep Escape from also closing the dialog while renaming.
+    event.stopPropagation();
     this.editingId.set(null);
   }
 
@@ -399,41 +413,24 @@ export class TasksDialogComponent {
     void this.store.updateTaskDue(id, value || null);
   }
 
-  protected dueTone(task: Task): DueTone | null {
-    return task.dueAt ? describeDue(task.dueAt, new Date()).tone : null;
+  protected openDatePicker(input: HTMLInputElement): void {
+    input.showPicker?.();
   }
 
-  protected kindLabel(task: Task): string {
-    if (task.kind === 'quick') return 'Quick';
-    switch (task.columnId) {
-      case 'doing':
-        return 'Doing';
-      case 'done':
-        return 'Done';
-      default:
-        return 'Backlog';
-    }
+  protected describe(task: Task): DueDescription | null {
+    return task.dueAt ? describeDue(task.dueAt, new Date()) : null;
   }
 
-  protected kindClasses(task: Task): string {
-    if (task.status === 'done') {
-      return 'border-white/8 bg-white/3 text-zinc-400';
-    }
-    if (task.kind === 'quick') {
-      return 'border-emerald-400/25 bg-emerald-400/5 text-emerald-300';
-    }
-    if (task.columnId === 'doing') {
-      return 'border-amber-400/25 bg-amber-400/5 text-amber-200';
-    }
-    return 'border-white/10 bg-white/3 text-zinc-400';
+  protected isDoing(task: Task): boolean {
+    return task.kind === 'project' && task.columnId === 'doing' && task.status !== 'done';
   }
 
   protected dismiss(): void {
     this.dismissed.emit();
   }
 
-  private focusAddInput(): void {
+  private focusCapture(): void {
     if (!this.open()) return;
-    this.addInput()?.nativeElement?.focus();
+    this.capture()?.focus();
   }
 }

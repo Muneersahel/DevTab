@@ -42,7 +42,76 @@ describe('RecentTasksPanelComponent', () => {
       expect.not.stringContaining('Due'),
     ]);
   });
+
+  it('adds a task with the due date typed at the end of its title', async () => {
+    const { fixture, element, store } = await render([]);
+
+    await type(fixture, element, 'Ship release notes tomorrow');
+    expect(element.querySelector('#recent-tasks-input-due')?.textContent).toContain('Due');
+    element.querySelector('dt-task-capture form')?.dispatchEvent(new Event('submit'));
+
+    expect(store.tasks()).toEqual([
+      expect.objectContaining({ title: 'Ship release notes', dueAt: '2026-11-03' }),
+    ]);
+  });
+
+  it('keeps the date word in the title when the date chip is dismissed', async () => {
+    const { fixture, element, store } = await render([]);
+
+    await type(fixture, element, 'Call with fri');
+    (element.querySelector('button[aria-label="Keep “fri” as text"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    element.querySelector('dt-task-capture form')?.dispatchEvent(new Event('submit'));
+
+    expect(store.tasks()).toEqual([
+      expect.objectContaining({ title: 'Call with fri', dueAt: null }),
+    ]);
+  });
+
+  it('offers undo after completing a task', async () => {
+    const { fixture, element, store } = await render([task('Write changelog', null)]);
+
+    (
+      element.querySelector('button[aria-label="Complete: Write changelog"]') as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    expect(store.tasks()[0].status).toBe('done');
+    expect(element.textContent).toContain('Completed “Write changelog”');
+
+    const undo = Array.from(element.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'Undo',
+    ) as HTMLButtonElement;
+    undo.click();
+    fixture.detectChanges();
+
+    expect(store.tasks()[0].status).toBe('todo');
+    expect(element.textContent).not.toContain('Completed “Write changelog”');
+  });
 });
+
+async function render(tasks: Task[]) {
+  await TestBed.configureTestingModule({
+    imports: [RecentTasksPanelComponent],
+  }).compileComponents();
+  const store = TestBed.inject(TaskStoreService);
+  store.tasks.set(tasks);
+  const fixture = TestBed.createComponent(RecentTasksPanelComponent);
+  fixture.detectChanges();
+  // ngModel registers its control with the form asynchronously.
+  await fixture.whenStable();
+  return { fixture, element: fixture.nativeElement as HTMLElement, store };
+}
+
+async function type(
+  fixture: { detectChanges(): void },
+  element: HTMLElement,
+  text: string,
+): Promise<void> {
+  const input = element.querySelector('#recent-tasks-input') as HTMLInputElement;
+  input.value = text;
+  input.dispatchEvent(new Event('input'));
+  fixture.detectChanges();
+}
 
 function task(title: string, dueAt: string | null): Task {
   return {

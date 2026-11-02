@@ -19,14 +19,9 @@ export class TaskStoreService {
       .sort((a, b) => a.sortOrder - b.sortOrder),
   );
 
-  /**
-   * Dashboard preview of open tasks. `today` holds every task that is overdue
-   * or due today; `later` fills the remaining slots. Both keep "Doing" ahead of
-   * quick and backlog tasks, then sort by due date (undated last).
-   */
-  readonly upNextTasks = computed((): { today: Task[]; later: Task[] } => {
-    const now = new Date();
-    const open = this.tasks()
+  /** Open tasks with "Doing" ahead of quick and backlog tasks, then by due date (undated last). */
+  private readonly openTasksSorted = computed(() =>
+    this.tasks()
       .filter((t) => t.status !== 'done')
       .sort((a, b) => {
         const p = priority(a) - priority(b);
@@ -34,9 +29,27 @@ export class TaskStoreService {
         const due = compareDue(a.dueAt, b.dueAt);
         if (due !== 0) return due;
         return a.sortOrder - b.sortOrder;
-      });
-    const today = open.filter((t) => t.dueAt !== null && isDueByToday(t.dueAt, now));
-    const later = open
+      }),
+  );
+
+  /** All open tasks split by due date: overdue or due today, later dates, and undated. */
+  readonly openTaskGroups = computed(() => {
+    const now = new Date();
+    const open = this.openTasksSorted();
+    return {
+      today: open.filter((t) => t.dueAt !== null && isDueByToday(t.dueAt, now)),
+      upcoming: open.filter((t) => t.dueAt !== null && !isDueByToday(t.dueAt, now)),
+      someday: open.filter((t) => t.dueAt === null),
+    };
+  });
+
+  /**
+   * Dashboard preview: every task due by today, then the remaining open tasks
+   * (in priority order) up to the preview limit.
+   */
+  readonly upNextTasks = computed((): { today: Task[]; later: Task[] } => {
+    const today = this.openTaskGroups().today;
+    const later = this.openTasksSorted()
       .filter((t) => !today.includes(t))
       .slice(0, Math.max(0, UP_NEXT_LIMIT - today.length));
     return { today, later };
@@ -73,7 +86,7 @@ export class TaskStoreService {
     this.tasks.set(normalizeAllTasks(raw));
   }
 
-  async addQuickTask(title: string): Promise<void> {
+  async addQuickTask(title: string, dueAt: string | null = null): Promise<void> {
     const trimmed = title.trim();
     if (!trimmed) return;
     const now = new Date().toISOString();
@@ -83,7 +96,7 @@ export class TaskStoreService {
       kind: 'quick',
       title: trimmed,
       status: 'todo',
-      dueAt: null,
+      dueAt,
       createdAt: now,
       updatedAt: now,
       sortOrder: nextOrder,
@@ -155,6 +168,17 @@ export class TaskStoreService {
       all.map((t) => (t.id === id ? { ...t, status: 'done' as const, updatedAt: now } : t)),
     );
     await this.persist();
+  }
+
+  /** Reopens a completed task: quick tasks go back to todo, project tasks to the backlog. */
+  async reopenTask(id: string): Promise<void> {
+    const target = this.tasks().find((t) => t.id === id);
+    if (!target || target.status !== 'done') return;
+    if (target.kind === 'project') {
+      await this.moveProjectTaskToColumn(id, 'backlog');
+      return;
+    }
+    await this.toggleQuickTaskDone(id);
   }
 
   async toggleQuickTaskDone(id: string): Promise<void> {

@@ -1,12 +1,9 @@
-export type WakaTimeCredentialType = 'apiKey' | 'bearerToken';
-
+/** A WakaTime OAuth access token, sent as `Authorization: Bearer <token>`. */
 export interface StoredWakaTimeCredential {
-  type: WakaTimeCredentialType;
   token: string;
   savedAt: string;
 }
 
 export interface WakaTimeCredentialInput {
-  type: WakaTimeCredentialType;
   token: string;
 }

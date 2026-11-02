@@ -4,7 +4,6 @@ import { StoredWakaTimeCredential } from '../models/credential.model';
 import { WakaTimeApiService } from './wakatime-api.service';
 
 const credential: StoredWakaTimeCredential = {
-  type: 'apiKey',
   token: 'abc123',
   savedAt: '2026-04-17T00:00:00Z',
 };
@@ -16,17 +15,7 @@ describe('WakaTimeApiService', () => {
     vi.unstubAllGlobals();
   });
 
-  it('creates authorization headers for API keys and bearer tokens', () => {
-    expect(service.createAuthorizationHeader(credential)).toBe('Basic YWJjMTIz');
-    expect(
-      service.createAuthorizationHeader({
-        type: 'bearerToken',
-        token: 'oauth-token',
-      }),
-    ).toBe('Bearer oauth-token');
-  });
-
-  it('fetches stats with the configured authorization header', async () => {
+  it('fetches stats with the OAuth token as a bearer header', async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse(createStatsResponse()));
     vi.stubGlobal('fetch', fetchMock);
 
@@ -35,7 +24,7 @@ describe('WakaTimeApiService', () => {
       'https://api.wakatime.com/api/v1/users/current/stats/last_7_days',
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: 'Basic YWJjMTIz',
+          Authorization: 'Bearer abc123',
         }),
       }),
     );

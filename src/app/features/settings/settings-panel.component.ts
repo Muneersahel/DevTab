@@ -13,7 +13,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import {
   StoredWakaTimeCredential,
   WakaTimeCredentialInput,
-  WakaTimeCredentialType,
 } from '../../core/models/credential.model';
 import {
   AUTO_REFRESH_INTERVAL_OPTIONS_MS,
@@ -91,30 +90,27 @@ const fieldClass =
               </p>
               <h3 class="mt-2 text-sm font-medium text-zinc-200">Connection</h3>
               <p class="mt-1 text-[12px] leading-relaxed text-zinc-500">
-                Use an API key or OAuth bearer token from your WakaTime account.
+                Use a WakaTime OAuth access token. WakaTime API keys only work for editor plugins.
+                <a
+                  class="text-emerald-300 underline-offset-2 hover:underline"
+                  href="https://wakatime.com/oauth"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Get a token<span class="sr-only"> (opens in a new tab)</span> ↗</a
+                >
               </p>
             </div>
 
             <label class="block">
               <span class="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-500"
-                >Credential type</span
-              >
-              <select class="${fieldClass}" formControlName="type">
-                <option value="apiKey">API key</option>
-                <option value="bearerToken">OAuth bearer token</option>
-              </select>
-            </label>
-
-            <label class="block">
-              <span class="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-500"
-                >Token</span
+                >OAuth token</span
               >
               <input
                 class="${fieldClass} font-mono"
                 formControlName="token"
                 type="password"
                 autocomplete="off"
-                placeholder="Paste your WakaTime credential"
+                placeholder="Paste your WakaTime OAuth token"
               />
             </label>
 
@@ -243,10 +239,6 @@ export class SettingsPanelComponent {
   readonly preferencesSaved = output<DevTabUiPreferences>();
 
   protected readonly form = new FormGroup({
-    type: new FormControl<WakaTimeCredentialType>('apiKey', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
     token: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(6)],
@@ -293,8 +285,8 @@ export class SettingsPanelComponent {
     });
 
     effect(() => {
-      const credential = this.credential();
-      this.form.controls.type.setValue(credential?.type ?? 'apiKey', { emitEvent: false });
+      // Clear the pasted token whenever the saved credential changes.
+      this.credential();
       this.form.controls.token.setValue('', { emitEvent: false });
     });
 
@@ -320,7 +312,6 @@ export class SettingsPanelComponent {
     }
 
     this.saveRequested.emit({
-      type: this.form.controls.type.value,
       token: this.form.controls.token.value,
     });
   }

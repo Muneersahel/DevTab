@@ -15,13 +15,11 @@ describe('SettingsPanelComponent', () => {
     fixture.detectChanges();
 
     fixture.componentInstance['form'].setValue({
-      type: 'bearerToken',
       token: 'oauth-secret',
     });
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
 
     expect(save).toHaveBeenCalledWith({
-      type: 'bearerToken',
       token: 'oauth-secret',
     });
   });

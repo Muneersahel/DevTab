@@ -69,7 +69,6 @@ export class StorageService {
 
   async saveCredential(input: WakaTimeCredentialInput): Promise<StoredWakaTimeCredential> {
     const credential: StoredWakaTimeCredential = {
-      type: input.type,
       token: input.token.trim(),
       savedAt: new Date().toISOString(),
     };
@@ -218,13 +217,8 @@ function parseCredential(value: unknown): StoredWakaTimeCredential | null {
     return null;
   }
 
-  if (
-    (parsed['type'] === 'apiKey' || parsed['type'] === 'bearerToken') &&
-    typeof parsed['token'] === 'string' &&
-    typeof parsed['savedAt'] === 'string'
-  ) {
+  if (typeof parsed['token'] === 'string' && typeof parsed['savedAt'] === 'string') {
     return {
-      type: parsed['type'],
       token: parsed['token'],
       savedAt: parsed['savedAt'],
     };

@@ -26,13 +26,10 @@ describe('StorageService', () => {
     });
 
     const service = new StorageService();
-    const saved = await service.saveCredential({ type: 'apiKey', token: ' secret ' });
+    const saved = await service.saveCredential({ token: ' secret ' });
 
     expect(saved.token).toBe('secret');
-    await expect(service.getCredential()).resolves.toMatchObject({
-      type: 'apiKey',
-      token: 'secret',
-    });
+    await expect(service.getCredential()).resolves.toMatchObject({ token: 'secret' });
 
     await service.clearCredential();
     await expect(service.getCredential()).resolves.toBeNull();

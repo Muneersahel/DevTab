@@ -16,7 +16,7 @@ can be added without reshaping the app.
 ## What It Does
 
 - Overrides Chrome's new tab page.
-- Stores a WakaTime API key or bearer token locally in `chrome.storage.local`.
+- Stores a WakaTime OAuth access token locally in `chrome.storage.local`.
 - Quick tasks, a three-column project board (move tasks between columns in the Board tab), and in-tab quick search (`chrome.search` when available). The `search` permission runs queries in your **default search engine** only; DevTab does not send searches to its own servers. If `chrome.search` is missing, Settings provides a fallback URL template (must include `%s`).
 - Fetches WakaTime stats from `https://api.wakatime.com/api/v1/users/current/stats/last_7_days`.
 - Fetches WakaTime summaries for the 7-day activity widget.
@@ -112,7 +112,7 @@ When running on `http://localhost:4200`, WakaTime API calls are sent through the
 
 6. Open a new tab. DevTab should replace Chrome's default new tab page.
 
-7. Click **Settings**, paste a WakaTime API key, and save.
+7. Click **Settings**, paste a WakaTime OAuth access token, and save.
 
 8. Confirm the dashboard loads. To test auth handling, save an invalid token and refresh; DevTab should show the reconnect state without raw API JSON.
 
@@ -120,10 +120,9 @@ After code changes, run `pnpm build`, return to `chrome://extensions`, and click
 
 ## WakaTime Credentials
 
-For v1, DevTab supports pasted credentials:
+DevTab uses a pasted WakaTime OAuth access token, sent as `Authorization: Bearer ${token}`.
 
-- **API key**: sent as `Authorization: Basic ${base64(apiKey)}`.
-- **Bearer token**: sent as `Authorization: Bearer ${token}`.
+Since November 1, 2026, WakaTime API keys only work for editor plugins. For personal use, get an OAuth token at <https://wakatime.com/oauth> and paste it into DevTab; the OAuth app does not need to be published to read your own account.
 
 Secrets are not hardcoded and are stored only in browser-local extension storage. A localStorage fallback exists only for local development outside the Chrome extension runtime.
 

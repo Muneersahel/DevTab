@@ -87,14 +87,6 @@ export class WakaTimeApiService {
     );
   }
 
-  createAuthorizationHeader(credential: Pick<StoredWakaTimeCredential, 'type' | 'token'>): string {
-    if (credential.type === 'bearerToken') {
-      return `Bearer ${credential.token}`;
-    }
-
-    return `Basic ${globalThis.btoa(credential.token)}`;
-  }
-
   private async request<T>(
     path: string,
     credential: StoredWakaTimeCredential,
@@ -106,7 +98,7 @@ export class WakaTimeApiService {
       response = await fetch(`${resolveApiBase()}${path}`, {
         headers: {
           Accept: 'application/json',
-          Authorization: this.createAuthorizationHeader(credential),
+          Authorization: `Bearer ${credential.token}`,
         },
       });
     } catch (error) {

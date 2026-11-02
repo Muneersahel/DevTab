@@ -7,7 +7,6 @@ import { StorageService } from './storage.service';
 import { WakaTimeApiError, WakaTimeApiService } from './wakatime-api.service';
 
 const credential: StoredWakaTimeCredential = {
-  type: 'apiKey',
   token: 'abc123',
   savedAt: '2026-04-17T00:00:00Z',
 };
